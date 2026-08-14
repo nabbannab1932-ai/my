@@ -30,15 +30,12 @@
         html, body {
             width: 100%;
             height: 100%;
-            height: 100vh;
-            height: -webkit-fill-available;
             margin: 0;
             padding: 0;
-            overflow: hidden;
             font-family: 'Tajawal', sans-serif;
-            -webkit-user-select: none;
-            user-select: none;
             background: #020617;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .hide-scrollbar::-webkit-scrollbar { display: none !important; }
@@ -58,8 +55,6 @@
         #app-container {
             width: 100%;
             height: 100%;
-            height: 100vh;
-            height: -webkit-fill-available;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -68,13 +63,13 @@
 
         #app-content {
             flex: 1;
-            overflow-y: scroll !important;
+            overflow-y: auto !important;
             -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y;
             scroll-behavior: smooth;
-            overscroll-behavior-y: contain;
-            padding-bottom: calc(85px + var(--safe-bottom));
+            overscroll-behavior-y: bounce;
+            padding-bottom: calc(95px + var(--safe-bottom));
             position: relative;
-            will-change: transform, scroll-position;
         }
 
         #pull-to-refresh-spinner {
@@ -93,6 +88,7 @@
         }
         #pull-to-refresh-spinner.pulling { opacity: 1; }
 
+        /* حاوية الفيديو الرئيسية ومشغل اليوتيوب المخصص */
         .video-wrapper-box {
             position: relative;
             width: 100%;
@@ -103,121 +99,138 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.4);
         }
 
-        #app-nav-wrapper { bottom: calc(10px + var(--safe-bottom)); }
+        /* وضع ملء الشاشة للحاوية */
+        .video-wrapper-box:fullscreen,
+        .video-wrapper-box:-webkit-full-screen,
+        .video-wrapper-box:-moz-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            max-width: none !important;
+            max-height: none !important;
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 99999 !important;
+        }
 
-        /* واجهة الريلز السريعة الفائقة */
-        #reels-standalone-page {
-            position: fixed;
+        /* طبقة التحكم المخصصة فوق فيديو اليوتيوب */
+        .custom-player-overlay {
+            position: absolute;
             inset: 0;
-            width: 100vw;
-            height: 100vh;
-            height: -webkit-fill-available;
-            z-index: 9999;
-            background: #000;
+            z-index: 30;
+            background: rgba(0, 0, 0, 0.45);
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-        }
-        #reels-standalone-page.active {
-            opacity: 1;
+            transition: opacity 0.3s ease;
             pointer-events: auto;
         }
 
-        #reels-splash-screen {
-            position: absolute;
-            inset: 0;
-            z-index: 300;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.2s ease, visibility 0.2s;
-        }
-        #reels-splash-screen.hidden-splash {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
+        .video-wrapper-box:hover .custom-player-overlay,
+        .custom-player-overlay.active-controls {
+            opacity: 1;
         }
 
-        .reels-glass-header {
+        /* حماية أعلى الفيديو لمنع الضغط على عنوان اليوتيوب */
+        .yt-protection-top {
             position: absolute;
-            top: 0; left: 0; right: 0;
-            z-index: 200;
+            top: 0; left: 0; right: 0; height: 50px;
+            z-index: 25;
+            background: transparent;
+        }
+
+        .horizontal-scroll-container {
+            display: flex;
+            gap: 0.75rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            touch-action: pan-x;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .scroll-item {
+            scroll-snap-align: start;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        #app-nav-wrapper { bottom: calc(10px + var(--safe-bottom)); }
+
+        #reels-standalone-page {
+            position: fixed; inset: 0; width: 100vw; height: 100vh;
+            z-index: 9999; background: #000; display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        #reels-standalone-page.active { opacity: 1; pointer-events: auto; }
+
+        #reels-splash-screen {
+            position: absolute; inset: 0; z-index: 300; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.2s ease, visibility 0.2s;
+        }
+        #reels-splash-screen.hidden-splash { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .reels-glass-header {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 200;
             padding-top: calc(12px + var(--safe-top));
             padding-bottom: 12px; padding-left: 16px; padding-right: 16px;
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             display: flex; align-items: center; justify-content: space-between;
         }
 
         .reels-glass-btn {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.25);
-            color: #fff; padding: 8px 16px; rounded-full: 9999px;
-            border-radius: 9999px; font-size: 12px; font-weight: 700;
-            backdrop-filter: blur(8px); display: flex; align-items: center; gap: 6px;
-            transition: all 0.2s ease;
+            color: #fff; padding: 8px 16px; border-radius: 9999px;
+            font-size: 12px; font-weight: 700; backdrop-filter: blur(8px);
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
         }
-        .reels-glass-btn:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.3); }
 
         #reels-feed {
-            width: 100%; height: 100%;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-            overscroll-behavior-y: contain;
-            background: #000;
+            width: 100%; height: 100%; overflow-y: scroll;
+            scroll-snap-type: y mandatory; scrollbar-width: none;
+            touch-action: pan-y; overscroll-behavior-y: contain; background: #000;
         }
         #reels-feed::-webkit-scrollbar { display: none; }
 
         .reels-video-card {
-            position: relative;
-            width: 100%; height: 100vh;
-            height: -webkit-fill-available;
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-            background: #000;
-            overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
+            position: relative; width: 100%; height: 100vh;
+            scroll-snap-align: start; scroll-snap-stop: always;
+            background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
 
         .reels-media-container {
-            position: absolute; inset: 0;
-            display: flex; justify-content: center; align-items: center;
-            background: #000;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; inset: 0; display: flex; justify-content: center; align-items: center;
+            background: #000; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .reels-media-container iframe, 
         .reels-media-container video {
-            position: absolute; width: 100%; height: 100%;
-            border: none; object-fit: contain !important;
+            position: absolute; width: 100%; height: 100%; border: none; object-fit: contain !important;
         }
 
         .reels-media-container.rotated { transform: rotate(90deg) scale(1.4); }
 
         .reels-tap-area {
             position: absolute; top: 0; bottom: 0; z-index: 15;
-            background: transparent; touch-action: manipulation;
+            background: transparent; touch-action: pan-y;
         }
         .reels-tap-left { left: 0; width: 35%; }
         .reels-tap-center { left: 35%; width: 30%; }
         .reels-tap-right { right: 0; width: 35%; }
 
         .reels-seek-feedback, .reels-play-feedback {
-            position: absolute; top: 50%;
-            transform: translateY(-50%) scale(0.8);
+            position: absolute; top: 50%; transform: translateY(-50%) scale(0.8);
             width: 80px; height: 80px; border-radius: 50%;
             background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px);
             color: white; display: flex; align-items: center; justify-content: center;
-            flex-direction: column; font-size: 26px; z-index: 50;
-            pointer-events: none; opacity: 0;
+            flex-direction: column; font-size: 26px; z-index: 50; pointer-events: none; opacity: 0;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -263,9 +276,7 @@
             background: rgba(0, 0, 0, 0.45); color: white; font-size: 18px;
             cursor: pointer; backdrop-filter: blur(8px);
             display: flex; align-items: center; justify-content: center;
-            transition: transform 0.1s ease;
         }
-        .reels-action:active { transform: scale(0.85); }
 
         .reels-scroll-controls {
             position: absolute; right: 12px; top: 50%;
@@ -278,9 +289,8 @@
             background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.25);
             color: white; display: flex; align-items: center; justify-content: center;
             backdrop-filter: blur(8px); font-size: 14px; cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        .reels-scroll-btn:active { transform: scale(0.85); }
     </style>
 </head>
 <body class="gradient-bg flex items-center justify-center min-h-screen p-0 md:p-4 transition-colors duration-300" id="body-layout">
@@ -300,7 +310,7 @@
     </div>
 
     <!-- التطبيق الرئيسي -->
-    <div class="md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl transition-colors duration-300" id="app-container">
+    <div class="w-full h-full md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl transition-colors duration-300" id="app-container">
         
         <header class="bg-[#f5f2eb] border-b border-amber-200/60 px-5 py-4 flex items-center justify-between z-30 flex-shrink-0 transition-all duration-300" id="app-header">
             <div class="flex items-center gap-2.5">
@@ -338,14 +348,14 @@
 
                 <div>
                     <h3 class="text-xs font-bold text-amber-900 mb-2.5 tracking-wider uppercase transition-colors" id="title-subjects"><i class="fa-solid fa-cubes ml-1 text-blue-500"></i> المواد الدراسية</h3>
-                    <div class="flex gap-3 overflow-x-auto pb-1 hide-scrollbar" id="subjects-container" style="scroll-snap-type: x mandatory;">
+                    <div class="horizontal-scroll-container hide-scrollbar" id="subjects-container">
                         <div class="text-xs text-slate-600 text-center py-4 w-full">جاري تحميل المواد...</div>
                     </div>
                 </div>
 
                 <div>
                     <h3 class="text-xs font-bold text-amber-900 mb-2.5 tracking-wider uppercase transition-colors" id="title-teachers"><i class="fa-solid fa-user-graduate ml-1 text-emerald-500"></i> أعضاء هيئة التدريس</h3>
-                    <div class="flex gap-4 overflow-x-auto pb-2 hide-scrollbar" id="teachers-container" style="scroll-snap-type: x mandatory;">
+                    <div class="horizontal-scroll-container hide-scrollbar" id="teachers-container">
                         <div class="text-xs text-slate-600 text-center py-4 w-full">جاري جلب المدرسين...</div>
                     </div>
                 </div>
@@ -358,7 +368,7 @@
                         </div>
                         <button id="clear-filter-btn" onclick="clearCourseFilter()" class="hidden text-[10px] text-red-400 font-bold hover:underline animate__animated animate__fadeIn">عرض الكل</button>
                     </div>
-                    <div class="flex gap-3 overflow-x-auto pb-1 hide-scrollbar" id="home-courses-container" style="scroll-snap-type: x mandatory;">
+                    <div class="horizontal-scroll-container hide-scrollbar" id="home-courses-container">
                         <div class="text-xs text-slate-600 text-center py-4 w-full">جاري تحميل الكورسات...</div>
                     </div>
                 </div>
@@ -370,14 +380,66 @@
                     <span id="playlist-course-title" class="text-xs font-black text-amber-900 max-w-[200px] truncate playlist-main-title">اسم الكورس المختار</span>
                 </div>
 
-                <div class="video-wrapper-box" id="video-container-box">
-                    <div id="video-player-frame" class="w-full h-full flex items-center justify-center">
+                <!-- مشغل فيديو مخصص متطور مع مشغل فوق اليوتيوب -->
+                <div class="video-wrapper-box" id="video-container-box" onclick="toggleOverlayControls()">
+                    <div class="yt-protection-top"></div>
+                    
+                    <div id="video-player-frame" class="w-full h-full flex items-center justify-center relative">
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
                             <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
                             <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
                         </div>
                     </div>
+
+                    <!-- طبقة التحكم المخصصة (Custom Overlay Controller) فوق اليوتيوب -->
+                    <div class="custom-player-overlay" id="custom-player-overlay">
+                        <div class="flex justify-between items-center text-white text-xs font-bold">
+                            <span id="custom-player-title" class="truncate max-w-[150px]">اختر درس للبدء</span>
+                            <div class="flex items-center gap-1.5" onclick="event.stopPropagation()">
+                                <!-- زر الترجمة CC -->
+                                <button id="custom-cc-btn" onclick="toggleSubtitles(event)" class="bg-black/60 hover:bg-black px-2 py-1 rounded-lg text-[10px] border border-white/20 flex items-center gap-1" title="تشغيل/إلغاء الترجمة">
+                                    <i class="fa-solid fa-closed-captioning"></i> CC
+                                </button>
+                                <!-- زر الجودة -->
+                                <select id="custom-quality-select" onchange="changeVideoQuality(this.value, event)" class="bg-black/60 text-white hover:bg-black px-1.5 py-1 rounded-lg text-[10px] border border-white/20 outline-none cursor-pointer">
+                                    <option value="auto">تلقائي</option>
+                                    <option value="hd1080">1080p</option>
+                                    <option value="hd720">720p</option>
+                                    <option value="large">480p</option>
+                                    <option value="medium">360p</option>
+                                </select>
+                                <!-- زر ملء الشاشة -->
+                                <button onclick="requestVideoFullscreen(event)" class="bg-black/60 hover:bg-black px-2 py-1 rounded-lg text-[10px] border border-white/20 flex items-center gap-1" title="ملء الشاشة">
+                                    <i class="fa-solid fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- أزرار الوسط (تشغيل/إيقاف/تقديم/تأخير) -->
+                        <div class="flex items-center justify-center gap-6 text-white my-auto">
+                            <button onclick="seekMainVideo(-10, event)" class="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80">
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                            </button>
+                            <button id="custom-play-btn" onclick="toggleMainVideoPlay(event)" class="w-12 h-12 rounded-full bg-amber-500 text-black flex items-center justify-center hover:scale-105 transition-transform font-bold">
+                                <i class="fa-solid fa-play text-base"></i>
+                            </button>
+                            <button onclick="seekMainVideo(10, event)" class="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80">
+                                <i class="fa-solid fa-rotate-right text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- شريط التقدم والتحكم بالصوت -->
+                        <div class="space-y-1" onclick="event.stopPropagation()">
+                            <input type="range" id="custom-seek-bar" value="0" max="100" class="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-amber-500" onchange="onSeekBarChange(this.value)">
+                            <div class="flex justify-between items-center text-[10px] text-white/80">
+                                <span id="custom-time-current">00:00</span>
+                                <button onclick="toggleMainMute(event)" class="text-xs hover:text-amber-400" id="custom-mute-btn"><i class="fa-solid fa-volume-high"></i></button>
+                                <span id="custom-time-total">00:00</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <h3 id="current-playing-title" class="text-[11px] font-bold text-amber-700 px-1 truncate"></h3>
 
                 <div class="space-y-4" id="course-chapters-list"></div>
@@ -447,7 +509,7 @@
 
                 <div class="flex flex-col items-center justify-center relative">
                     <div id="center-nav-glow" class="absolute inset-0 bg-amber-500/20 blur-xl rounded-full scale-125"></div>
-                    <button onclick="switchTab('home')" id="nav-home" class="w-11 h-11 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-base shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all transform hover:scale-105 active:scale-95">
+                    <button onclick="switchTab('home')" id="nav-home" class="w-11 h-11 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-base shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all">
                         <i class="fa-solid fa-house"></i>
                     </button>
                     <span id="nav-home-text" class="text-[9px] font-black text-amber-700 mt-0.5">الرئيسية</span>
@@ -455,7 +517,7 @@
 
                 <div class="flex flex-col items-center justify-center relative">
                     <div id="reels-nav-glow" class="absolute inset-0 bg-sky-500/20 blur-xl rounded-full scale-125"></div>
-                    <button onclick="openStandaloneReels()" id="nav-reels" class="w-11 h-11 rounded-full bg-gradient-to-b from-sky-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-sky-500/30 relative border-2 border-[#fcfbf7] transition-all transform hover:scale-105 active:scale-95">
+                    <button onclick="openStandaloneReels()" id="nav-reels" class="w-11 h-11 rounded-full bg-gradient-to-b from-sky-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-sky-500/30 relative border-2 border-[#fcfbf7] transition-all">
                         <i class="fa-solid fa-circle-play"></i>
                     </button>
                     <span id="nav-reels-text" class="text-[9px] font-black text-sky-600 mt-0.5">ريلز</span>
@@ -471,7 +533,6 @@
 
     <!-- واجهة الريلز المستقلة -->
     <div id="reels-standalone-page">
-        
         <div id="reels-splash-screen">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-400 to-blue-600 flex items-center justify-center shadow-2xl mb-3 animate-bounce">
                 <i class="fa-solid fa-play text-2xl text-white"></i>
@@ -533,21 +594,23 @@
         let reelsLoaded = false;
         let isReelsActive = false;
 
-        function handleGestureActivation() {
-            if (!reelsUserInteracted) {
-                reelsUserInteracted = true;
-            }
-        }
+        /* المتغيرات العامة لمشغل الدورة الرئيسي المخصص */
+        let mainYTPlayer = null;
+        let mainPlayerProgressTimer = null;
+        let overlayTimer = null;
+        let isSubtitlesOn = false;
 
-        document.addEventListener("touchstart", handleGestureActivation, { passive: true, capture: true });
-        document.addEventListener("click", handleGestureActivation, { passive: true, capture: true });
+        document.addEventListener('touchstart', () => {
+            if (!reelsUserInteracted) reelsUserInteracted = true;
+        }, { passive: true });
 
-        /* =========================================
-           إعدادات السحب للتحديث Pull-to-Refresh
-        ========================================= */
+        /* =======================================================
+           ميزة التحديث بالسحب للأسفل
+        ======================================================= */
         let startY = 0;
         let currentY = 0;
         let isPulling = false;
+
         const appContent = document.getElementById('app-content');
         const pullSpinner = document.getElementById('pull-to-refresh-spinner');
         const pullIcon = pullSpinner.querySelector('.id-pull-icon');
@@ -749,11 +812,6 @@
             return match ? match[1] : url;
         }
 
-        /* توليد رابط يوتيوب الخفيف والسريع بدعم الشورتس */
-        function getFastYouTubeShortsEmbedUrl(videoId) {
-            return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&controls=0&rel=0&playsinline=1&modestbranding=1&loop=1&playlist=${videoId}&nohtml5=1`;
-        }
-
         async function preloadReelsInBackground() {
             try {
                 const response = await fetch(REELS_SHEET_URL);
@@ -867,21 +925,13 @@
                         reelsPlayers[index] = new YT.Player(`reels-player-${index}`, {
                             videoId: video.source,
                             playerVars: {
-                                autoplay: 0,
-                                controls: 0,
-                                rel: 0,
-                                playsinline: 1,
-                                mute: 0,
-                                iv_load_policy: 3,
-                                cc_load_policy: 0,
-                                modestbranding: 1,
-                                enablejsapi: 1,
+                                autoplay: 0, controls: 0, rel: 0, playsinline: 1,
+                                mute: 0, iv_load_policy: 3, cc_load_policy: 0,
+                                modestbranding: 1, enablejsapi: 1,
                                 origin: window.location.origin || '*'
                             },
                             events: {
-                                onReady: (e) => { 
-                                    e.target.pauseVideo();
-                                },
+                                onReady: (e) => { e.target.pauseVideo(); },
                                 onStateChange: (e) => {
                                     if (e.data === YT.PlayerState.ENDED) scrollReelsNext();
                                 }
@@ -892,7 +942,6 @@
             }
         }
 
-        /* تنفيذ آلية البث والتحميل المسبق الثلاثي (Triple Preloading) */
         function triggerReelsTriplePreload(currentIndex) {
             const indicesToPreload = [currentIndex, currentIndex + 1, currentIndex - 1];
             indicesToPreload.forEach(idx => {
@@ -900,7 +949,7 @@
                     const video = reelsVideos[idx];
                     if (video.type === "youtube" && reelsPlayers[idx] && typeof reelsPlayers[idx].cueVideoById === "function") {
                         if (idx !== currentIndex) {
-                            reelsPlayers[idx].cueVideoById(video.source); // تجهيز دون تشغيل
+                            reelsPlayers[idx].cueVideoById(video.source);
                         }
                     } else if (video.type === "direct") {
                         const vid = document.getElementById(`reels-direct-video-${idx}`);
@@ -914,10 +963,8 @@
 
         function playReelsVideo(index) {
             if (!isReelsActive) return;
-
             reelsCurrentIndex = index;
 
-            // إيقاف جميع الفيديوهات الأخرى
             reelsVideos.forEach((v, i) => {
                 if (i !== index) {
                     if (v.type === "direct") {
@@ -954,7 +1001,6 @@
             const btn = document.getElementById(`reels-sound-btn-${index}`);
             if (btn) btn.innerHTML = "🔊";
 
-            // إطلاق التحميل المسبق للسطر التالي والسابق
             triggerReelsTriplePreload(index);
         }
 
@@ -971,7 +1017,6 @@
 
         function toggleReelsPlayPause(index) {
             if (!isReelsActive) return;
-            handleGestureActivation();
             const currentVideo = reelsVideos[index];
             const feedback = document.getElementById(`reels-feedback-center-${index}`);
 
@@ -1007,7 +1052,6 @@
         }
 
         function toggleReelsSound(index, button) {
-            handleGestureActivation();
             const currentVideo = reelsVideos[index];
 
             if (currentVideo.type === "direct") {
@@ -1091,32 +1135,18 @@
             const tapTracker = new Map();
 
             document.querySelectorAll(".reels-tap-left, .reels-tap-right").forEach(area => {
-                const handleTap = (e) => {
+                area.addEventListener("click", (e) => {
                     const now = Date.now();
                     const lastTime = tapTracker.get(area) || 0;
                     const index = parseInt(area.dataset.index);
                     const side = area.dataset.side;
 
                     if (now - lastTime < 300) {
-                        if (side === "right") {
-                            seekReelsForward(index);
-                        } else {
-                            seekReelsBackward(index);
-                        }
+                        if (side === "right") seekReelsForward(index);
+                        else seekReelsBackward(index);
                         tapTracker.set(area, 0);
                     } else {
                         tapTracker.set(area, now);
-                    }
-                };
-
-                area.addEventListener("touchstart", (e) => {
-                    handleGestureActivation();
-                    handleTap(e);
-                }, { passive: true });
-
-                area.addEventListener("click", (e) => {
-                    if (e.pointerType === "mouse") {
-                        handleTap(e);
                     }
                 });
             });
@@ -1124,7 +1154,6 @@
 
         function scrollReelsNext() {
             if (!isReelsActive) return;
-            handleGestureActivation();
             const next = Math.min(reelsCurrentIndex + 1, reelsVideos.length - 1);
             const containerHeight = document.getElementById("reels-feed").clientHeight;
             document.getElementById("reels-feed").scrollTo({
@@ -1136,7 +1165,6 @@
 
         function scrollReelsPrevious() {
             if (!isReelsActive) return;
-            handleGestureActivation();
             const prev = Math.max(reelsCurrentIndex - 1, 0);
             const containerHeight = document.getElementById("reels-feed").clientHeight;
             document.getElementById("reels-feed").scrollTo({
@@ -1189,7 +1217,7 @@
                 let subName = item[keys[1]] || "مادة دراسية";
                 let iconClass = getSubjectIcon(subName);
                 subBox.innerHTML += `
-                    <div onclick="filterCoursesBy('subject', '${subId}', '${subName}')" class="p-4 rounded-xl bg-white border border-amber-200/60 text-center hover:border-blue-500/60 transition-all active:scale-95 cursor-pointer subject-box min-w-[115px] max-w-[115px] flex-shrink-0" style="scroll-snap-align: start;">
+                    <div onclick="filterCoursesBy('subject', '${subId}', '${subName}')" class="scroll-item p-4 rounded-xl bg-white border border-amber-200/60 text-center hover:border-blue-500/60 transition-all active:scale-95 cursor-pointer subject-box w-[115px]">
                         <div class="w-9 h-9 rounded-full bg-slate-950 flex items-center justify-center mx-auto mb-2 border border-slate-800/60"><i class="${iconClass} text-base"></i></div>
                         <h4 class="text-xs font-bold text-amber-950 subject-title truncate">${subName}</h4>
                     </div>
@@ -1208,7 +1236,7 @@
                 let avatarHtml = `<i class="fa-solid fa-user-tie text-3xl text-emerald-400"></i>`;
                 if(imgRaw) avatarHtml = `<img src="${convertDriveUrlToDirect(imgRaw)}" class="w-full h-full object-cover">`;
                 teaBox.innerHTML += `
-                    <div onclick="filterCoursesBy('teacher', '${id}', '${name}')" class="p-4 rounded-2xl bg-white border border-amber-200/60 flex flex-col items-center text-center hover:border-emerald-500/50 transition-all active:scale-95 cursor-pointer teacher-card min-w-[170px] max-w-[170px] min-h-[260px] flex-shrink-0" style="scroll-snap-align: start;">
+                    <div onclick="filterCoursesBy('teacher', '${id}', '${name}')" class="scroll-item p-4 rounded-2xl bg-white border border-amber-200/60 flex flex-col items-center text-center hover:border-emerald-500/50 transition-all active:scale-95 cursor-pointer teacher-card w-[170px] min-h-[260px]">
                         <div class="w-24 h-24 rounded-full bg-gradient-to-b from-slate-950 to-slate-800 border-2 border-emerald-500/40 shadow-xl mb-3 overflow-hidden flex-shrink-0 flex items-center justify-center">
                             ${avatarHtml}
                         </div>
@@ -1257,7 +1285,7 @@
                 let isActivated = activatedCourseIds.includes(cId);
 
                 container.innerHTML += `
-                    <div onclick="openCoursePlaylistPage('${cId}', '${cName}')" class="rounded-2xl bg-white border ${isActivated ? 'border-emerald-500/30' : 'border-amber-200/60'} hover:border-blue-500/40 cursor-pointer flex flex-col justify-between overflow-hidden min-w-[165px] max-w-[165px] h-[210px] flex-shrink-0 transition-all active:scale-95 course-main-box" style="scroll-snap-align: start;">
+                    <div onclick="openCoursePlaylistPage('${cId}', '${cName}')" class="scroll-item rounded-2xl bg-white border ${isActivated ? 'border-emerald-500/30' : 'border-amber-200/60'} hover:border-blue-500/40 cursor-pointer flex flex-col justify-between overflow-hidden w-[165px] h-[210px] transition-all active:scale-95 course-main-box">
                         <div class="w-full h-24 bg-gradient-to-br from-amber-50 to-white relative flex items-center justify-center border-b border-amber-200/40 course-top-card">
                             <div class="w-9 h-9 rounded-full ${isActivated ? 'bg-emerald-500/10 text-emerald-400' : 'bg-indigo-500/10 text-indigo-400'} flex items-center justify-center text-sm shadow-md">
                                 <i class="${isActivated ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock'}"></i>
@@ -1314,7 +1342,7 @@
             let globalLessonIndex = 0; 
             let isCourseActivated = activatedCourseIds.includes(courseId);
 
-            Object.keys(chaptersMap).forEach((chapterName, idx) => {
+            Object.keys(chaptersMap).forEach((chapterName) => {
                 let lessonsHtml = "";
                 chaptersMap[chapterName].forEach(lesson => {
                     globalLessonIndex++;
@@ -1359,61 +1387,236 @@
         }
 
         function pauseCourseMainVideo() {
+            if(mainYTPlayer && typeof mainYTPlayer.pauseVideo === 'function') {
+                mainYTPlayer.pauseVideo();
+            }
+            if (mainPlayerProgressTimer) clearInterval(mainPlayerProgressTimer);
+
             const playerFrame = document.getElementById('video-player-frame');
             playerFrame.innerHTML = `
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
                     <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
                     <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
                 </div>`;
+            document.getElementById('custom-player-overlay').classList.remove('active-controls');
         }
 
+        /* =======================================================
+           تشغيل مشغل فيديو المادة مع واجهة تحكم مخصصة (Custom Player)
+        ======================================================= */
         function playSelectedVideo(url, title) {
             pauseAllReelsVideos();
             const playerFrame = document.getElementById('video-player-frame');
             document.getElementById('current-playing-title').innerText = "يعرض الآن: " + title;
+            document.getElementById('custom-player-title').innerText = title;
 
             let isYoutube = url.includes('youtube.com') || url.includes('youtu.be');
 
             if (isYoutube) {
                 let videoId = extractYouTubeId(url);
-                playerFrame.innerHTML = `
-                    <iframe id="active-video-element" 
-                            class="w-full h-full object-cover" 
-                            src="${getFastYouTubeShortsEmbedUrl(videoId)}" 
-                            allow="autoplay; fullscreen" 
-                            allowfullscreen></iframe>
-                `;
+                playerFrame.innerHTML = `<div id="main-course-yt-embed"></div>`;
+                
+                mainYTPlayer = new YT.Player('main-course-yt-embed', {
+                    videoId: videoId,
+                    width: '100%',
+                    height: '100%',
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 0,
+                        modestbranding: 1,
+                        rel: 0,
+                        playsinline: 1,
+                        enablejsapi: 1,
+                        cc_load_policy: 1
+                    },
+                    events: {
+                        onReady: onMainPlayerReady,
+                        onStateChange: onMainPlayerStateChange
+                    }
+                });
             } else {
                 playerFrame.innerHTML = `
-                    <video id="active-video-element" 
+                    <video id="main-course-direct-video" 
                            class="w-full h-full object-cover" 
-                           controls 
                            autoplay 
-                           playsinline="false" 
-                           webkit-playsinline="false" 
+                           playsinline
                            src="${url}"></video>
                 `;
+                const directVid = document.getElementById('main-course-direct-video');
+                directVid.addEventListener('timeupdate', updateDirectVideoProgress);
             }
+            toggleOverlayControls();
 
-            setTimeout(() => {
-                let videoEl = document.getElementById('active-video-element');
-                if (videoEl) {
-                    if (videoEl.requestFullscreen) {
-                        videoEl.requestFullscreen();
-                    } else if (videoEl.webkitRequestFullscreen) {
-                        videoEl.webkitRequestFullscreen(); 
-                    } else if (videoEl.webkitEnterFullscreen) {
-                        videoEl.webkitEnterFullscreen();
-                    } else {
-                        const wrapper = document.getElementById('video-container-box');
-                        if (wrapper.requestFullscreen) {
-                            wrapper.requestFullscreen();
-                        } else if (wrapper.webkitRequestFullscreen) {
-                            wrapper.webkitRequestFullscreen();
-                        }
-                    }
+            // تنفيذ ملء الشاشة تلقائياً عند الضغط على زر التشغيل مباشرة
+            requestVideoFullscreen();
+        }
+
+        function onMainPlayerReady(e) {
+            e.target.playVideo();
+            updateCustomControls();
+            if(mainPlayerProgressTimer) clearInterval(mainPlayerProgressTimer);
+            mainPlayerProgressTimer = setInterval(updateCustomControls, 500);
+        }
+
+        function onMainPlayerStateChange(e) {
+            const btn = document.getElementById('custom-play-btn');
+            if (e.data === YT.PlayerState.PLAYING) {
+                btn.innerHTML = `<i class="fa-solid fa-pause text-base"></i>`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-play text-base"></i>`;
+            }
+        }
+
+        function updateCustomControls() {
+            if (!mainYTPlayer || typeof mainYTPlayer.getCurrentTime !== 'function') return;
+            let current = mainYTPlayer.getCurrentTime() || 0;
+            let total = mainYTPlayer.getDuration() || 0;
+
+            document.getElementById('custom-time-current').innerText = formatTime(current);
+            document.getElementById('custom-time-total').innerText = formatTime(total);
+
+            if(total > 0) {
+                document.getElementById('custom-seek-bar').value = (current / total) * 100;
+            }
+        }
+
+        function updateDirectVideoProgress() {
+            const vid = document.getElementById('main-course-direct-video');
+            if(!vid) return;
+            document.getElementById('custom-time-current').innerText = formatTime(vid.currentTime);
+            document.getElementById('custom-time-total').innerText = formatTime(vid.duration || 0);
+            if(vid.duration) {
+                document.getElementById('custom-seek-bar').value = (vid.currentTime / vid.duration) * 100;
+            }
+        }
+
+        function formatTime(seconds) {
+            let min = Math.floor(seconds / 60);
+            let sec = Math.floor(seconds % 60);
+            return `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function toggleMainVideoPlay(e) {
+            if(e) e.stopPropagation();
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.getPlayerState === 'function') {
+                let state = mainYTPlayer.getPlayerState();
+                if(state === YT.PlayerState.PLAYING) mainYTPlayer.pauseVideo();
+                else mainYTPlayer.playVideo();
+            } else if(directVid) {
+                if(directVid.paused) directVid.play();
+                else directVid.pause();
+            }
+        }
+
+        function seekMainVideo(val, e) {
+            if(e) e.stopPropagation();
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.getCurrentTime === 'function') {
+                let current = mainYTPlayer.getCurrentTime();
+                mainYTPlayer.seekTo(current + val, true);
+            } else if(directVid) {
+                directVid.currentTime += val;
+            }
+        }
+
+        function onSeekBarChange(val) {
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.getDuration === 'function') {
+                let total = mainYTPlayer.getDuration();
+                mainYTPlayer.seekTo((val / 100) * total, true);
+            } else if(directVid && directVid.duration) {
+                directVid.currentTime = (val / 100) * directVid.duration;
+            }
+        }
+
+        function toggleMainMute(e) {
+            if(e) e.stopPropagation();
+            const btn = document.getElementById('custom-mute-btn');
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.isMuted === 'function') {
+                if(mainYTPlayer.isMuted()) {
+                    mainYTPlayer.unMute();
+                    btn.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+                } else {
+                    mainYTPlayer.mute();
+                    btn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i>`;
                 }
-            }, 500);
+            } else if(directVid) {
+                directVid.muted = !directVid.muted;
+                btn.innerHTML = directVid.muted ? `<i class="fa-solid fa-volume-xmark"></i>` : `<i class="fa-solid fa-volume-high"></i>`;
+            }
+        }
+
+        /* 🔴 خاصية التحكم بالترجمة CC */
+        function toggleSubtitles(e) {
+            if(e) e.stopPropagation();
+            const ccBtn = document.getElementById('custom-cc-btn');
+            
+            if (mainYTPlayer && typeof mainYTPlayer.loadModule === 'function') {
+                isSubtitlesOn = !isSubtitlesOn;
+                if (isSubtitlesOn) {
+                    mainYTPlayer.loadModule('captions');
+                    mainYTPlayer.setOption('captions', 'track', {'languageCode': 'ar'});
+                    ccBtn.classList.add('bg-amber-500', 'text-black');
+                    ccBtn.classList.remove('bg-black/60');
+                } else {
+                    mainYTPlayer.unloadModule('captions');
+                    ccBtn.classList.remove('bg-amber-500', 'text-black');
+                    ccBtn.classList.add('bg-black/60');
+                }
+            } else {
+                alert('الترجمة غير متوفرة لهذا الفيديو بشكل تلقائي');
+            }
+        }
+
+        /* 🔴 خاصية التحكم بدقة الفيديو Quality */
+        function changeVideoQuality(quality, e) {
+            if(e) e.stopPropagation();
+            if (mainYTPlayer && typeof mainYTPlayer.setPlaybackQuality === 'function') {
+                mainYTPlayer.setPlaybackQuality(quality);
+            }
+        }
+
+        function toggleOverlayControls() {
+            const overlay = document.getElementById('custom-player-overlay');
+            overlay.classList.add('active-controls');
+            if(overlayTimer) clearTimeout(overlayTimer);
+            overlayTimer = setTimeout(() => {
+                overlay.classList.remove('active-controls');
+            }, 3500);
+        }
+
+        /* 🟢 حل مشكلة ملء الشاشة المتكامل مع المشغل المخصص وحاوية الفيديو */
+        function requestVideoFullscreen(event) {
+            if(event) event.stopPropagation();
+
+            const wrapper = document.getElementById('video-container-box');
+            let videoEl = document.getElementById('main-course-direct-video');
+
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen().catch(() => {});
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.mozRequestFullScreen) {
+                    wrapper.mozRequestFullScreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                } else if (videoEl && videoEl.webkitEnterFullscreen) {
+                    videoEl.webkitEnterFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
         }
 
         function filterCoursesBy(type, id, value) {
@@ -1522,7 +1725,7 @@
                 document.getElementById('current-playing-title').innerText = "";
             }
 
-            navHome.className = "w-11 h-11 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-base shadow-md relative border-2 border-[#111827] transition-all transform hover:scale-105 active:scale-95";
+            navHome.className = "w-11 h-11 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-base shadow-md relative border-2 border-[#111827] transition-all";
             navHomeText.className = "text-[9px] font-bold text-slate-400 mt-0.5";
             navHomeGlow.className = "absolute inset-0 bg-transparent blur-xl rounded-full";
 
@@ -1549,11 +1752,11 @@
             const navHomeText = document.getElementById('nav-home-text');
             const navHomeGlow = document.getElementById('center-nav-glow');
             if(isDarkMode) {
-                navHome.className = "w-11 h-11 rounded-full bg-gradient-to-b from-blue-500 to-indigo-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 relative border-2 border-[#111827] transition-all transform hover:scale-105 active:scale-95";
+                navHome.className = "w-11 h-11 rounded-full bg-gradient-to-b from-blue-500 to-indigo-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 relative border-2 border-[#111827] transition-all";
                 navHomeText.className = "text-[9px] font-black text-blue-400 mt-0.5";
                 navHomeGlow.className = "absolute inset-0 bg-blue-500/20 blur-xl rounded-full scale-125";
             } else {
-                navHome.className = "w-11 h-11 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-base shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all transform hover:scale-105 active:scale-95";
+                navHome.className = "w-11 h-11 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-base shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all";
                 navHomeText.className = "text-[9px] font-black text-amber-700 mt-0.5";
                 navHomeGlow.className = "absolute inset-0 bg-amber-500/20 blur-xl rounded-full scale-125";
             }
@@ -1580,7 +1783,7 @@
             if(!isDarkMode) {
                 themeIcon.className = "fa-solid fa-moon";
                 themeToggleBtn.className = "w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-sm";
-                pContainer.className = "md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl transition-colors duration-300";
+                pContainer.className = "w-full h-full md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl transition-colors duration-300";
                 appHeader.className = "bg-[#f5f2eb] border-b border-amber-200/60 px-5 py-4 flex items-center justify-between z-30 flex-shrink-0";
                 appNav.className = "w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-amber-900/10";
                 document.getElementById('logo-text').className = "text-base font-black text-amber-900 tracking-wide";
@@ -1614,7 +1817,7 @@
                 document.querySelectorAll('.action-play-badge').forEach(b => b.className = "text-[9px] text-amber-700 font-bold bg-amber-500/5 px-2.5 py-1 rounded-md border border-amber-500/20 flex items-center gap-1 action-play-badge");
 
                 document.querySelectorAll('.subject-title, .teacher-name, .login-main-text, .profile-student-title, .course-item-title-text').forEach(t => {
-                    t.classList.remove('text-white');
+                    t.classList.remove('text-amber-950');
                     t.classList.add('text-amber-950');
                 });
                 document.getElementById('activation-panel').className = "bg-white border border-amber-200/60 p-4 rounded-2xl space-y-3";
@@ -1629,7 +1832,7 @@
             } else {
                 themeIcon.className = "fa-solid fa-sun";
                 themeToggleBtn.className = "w-8 h-8 rounded-full bg-slate-800 text-amber-400 flex items-center justify-center text-sm";
-                pContainer.className = "md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#0b0f19] shadow-2xl transition-colors duration-300";
+                pContainer.className = "w-full h-full md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#0b0f19] shadow-2xl transition-colors duration-300";
                 appHeader.className = "bg-[#111827] border-b border-slate-800/60 px-5 py-4 flex items-center justify-between z-30 flex-shrink-0";
                 appNav.className = "w-full h-full bg-[#111827]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-black/40";
                 document.getElementById('logo-text').className = "text-base font-black text-white tracking-wide";
