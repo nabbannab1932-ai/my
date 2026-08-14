@@ -97,12 +97,14 @@
             overflow: hidden;
             background: #000;
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.4);
+            transition: all 0.3s ease;
         }
 
-        /* وضع ملء الشاشة للحاوية */
+        /* وضع ملء الشاشة للحاوية وتغطية الشاشة بالكامل */
         .video-wrapper-box:fullscreen,
         .video-wrapper-box:-webkit-full-screen,
-        .video-wrapper-box:-moz-full-screen {
+        .video-wrapper-box:-moz-full-screen,
+        .video-wrapper-box.rotated-landscape {
             width: 100vw !important;
             height: 100vh !important;
             border-radius: 0 !important;
@@ -111,6 +113,14 @@
             position: fixed !important;
             inset: 0 !important;
             z-index: 99999 !important;
+            background: #000 !important;
+        }
+
+        .video-wrapper-box.rotated-landscape iframe,
+        .video-wrapper-box.rotated-landscape video {
+            width: 100vw !important;
+            height: 100vh !important;
+            object-fit: contain !important;
         }
 
         /* طبقة التحكم المخصصة فوق فيديو اليوتيوب */
@@ -133,7 +143,6 @@
             opacity: 1;
         }
 
-        /* حماية أعلى الفيديو لمنع الضغط على عنوان اليوتيوب */
         .yt-protection-top {
             position: absolute;
             top: 0; left: 0; right: 0; height: 50px;
@@ -380,7 +389,7 @@
                     <span id="playlist-course-title" class="text-xs font-black text-amber-900 max-w-[200px] truncate playlist-main-title">اسم الكورس المختار</span>
                 </div>
 
-                <!-- مشغل فيديو مخصص متطور مع مشغل فوق اليوتيوب -->
+                <!-- مشغل فيديو مخصص متطور مع مشغل فوق اليوتيوب وزر القلب والتكبير -->
                 <div class="video-wrapper-box" id="video-container-box" onclick="toggleOverlayControls()">
                     <div class="yt-protection-top"></div>
                     
@@ -408,6 +417,10 @@
                                     <option value="large">480p</option>
                                     <option value="medium">360p</option>
                                 </select>
+                                <!-- زر قلب وتكبير الشاشة بالعرض -->
+                                <button onclick="toggleMainVideoRotate(event)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded-lg text-[10px] border border-white/20 flex items-center gap-1 font-bold shadow-md" title="قلب وتكبير الشاشة بالعرض">
+                                    <i class="fa-solid fa-rotate"></i> قلب
+                                </button>
                                 <!-- زر ملء الشاشة -->
                                 <button onclick="requestVideoFullscreen(event)" class="bg-black/60 hover:bg-black px-2 py-1 rounded-lg text-[10px] border border-white/20 flex items-center gap-1" title="ملء الشاشة">
                                     <i class="fa-solid fa-expand"></i>
@@ -599,6 +612,7 @@
         let mainPlayerProgressTimer = null;
         let overlayTimer = null;
         let isSubtitlesOn = false;
+        let isMainVideoRotated = false;
 
         document.addEventListener('touchstart', () => {
             if (!reelsUserInteracted) reelsUserInteracted = true;
@@ -1402,7 +1416,7 @@
         }
 
         /* =======================================================
-           تشغيل مشغل فيديو المادة مع واجهة تحكم مخصصة (Custom Player)
+           تشغيل مشغل فيديو المادة مع واجهة تحكم مخصصة
         ======================================================= */
         function playSelectedVideo(url, title) {
             pauseAllReelsVideos();
@@ -1447,7 +1461,7 @@
             }
             toggleOverlayControls();
 
-            // تنفيذ ملء الشاشة تلقائياً عند الضغط على زر التشغيل مباشرة
+            // طلب ملء الشاشة تلقائياً عند التشغيل
             requestVideoFullscreen();
         }
 
@@ -1548,7 +1562,6 @@
             }
         }
 
-        /* 🔴 خاصية التحكم بالترجمة CC */
         function toggleSubtitles(e) {
             if(e) e.stopPropagation();
             const ccBtn = document.getElementById('custom-cc-btn');
@@ -1570,7 +1583,6 @@
             }
         }
 
-        /* 🔴 خاصية التحكم بدقة الفيديو Quality */
         function changeVideoQuality(quality, e) {
             if(e) e.stopPropagation();
             if (mainYTPlayer && typeof mainYTPlayer.setPlaybackQuality === 'function') {
@@ -1587,7 +1599,28 @@
             }, 3500);
         }
 
-        /* 🟢 حل مشكلة ملء الشاشة المتكامل مع المشغل المخصص وحاوية الفيديو */
+        /* 🟢 دالة تدوير وقلب الشاشة بالعرض لملء الشاشة بالكامل */
+        function toggleMainVideoRotate(event) {
+            if(event) event.stopPropagation();
+            isMainVideoRotated = !isMainVideoRotated;
+            const container = document.getElementById('video-container-box');
+            
+            if (isMainVideoRotated) {
+                container.classList.add('rotated-landscape');
+                if (!document.fullscreenElement && container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                }
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {});
+                }
+            } else {
+                container.classList.remove('rotated-landscape');
+                if (document.fullscreenElement && document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+        }
+
         function requestVideoFullscreen(event) {
             if(event) event.stopPropagation();
 
@@ -1596,7 +1629,11 @@
 
             if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
                 if (wrapper.requestFullscreen) {
-                    wrapper.requestFullscreen().catch(() => {});
+                    wrapper.requestFullscreen().then(() => {
+                        if (screen.orientation && screen.orientation.lock) {
+                            screen.orientation.lock('landscape').catch(() => {});
+                        }
+                    }).catch(() => {});
                 } else if (wrapper.webkitRequestFullscreen) {
                     wrapper.webkitRequestFullscreen();
                 } else if (wrapper.mozRequestFullScreen) {
