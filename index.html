@@ -88,7 +88,7 @@
         }
         #pull-to-refresh-spinner.pulling { opacity: 1; }
 
-        /* حاوية الفيديو الرئيسية ومشغل اليوتيوب المخصص */
+        /* حاوية الفيديو الرئيسية ومشغل اليوتيوب */
         .video-wrapper-box {
             position: relative;
             width: 100%;
@@ -100,11 +100,10 @@
             transition: all 0.3s ease;
         }
 
-        /* وضع ملء الشاشة للحاوية وتغطية الشاشة بالكامل متخطياً القالب */
+        /* وضع ملء الشاشة للحاوية وتغطية الشاشة بالكامل */
         .video-wrapper-box:fullscreen,
         .video-wrapper-box:-webkit-full-screen,
-        .video-wrapper-box:-moz-full-screen,
-        .video-wrapper-box.rotated-landscape {
+        .video-wrapper-box:-moz-full-screen {
             width: 100vw !important;
             height: 100vh !important;
             border-radius: 0 !important;
@@ -112,15 +111,19 @@
             max-height: none !important;
             position: fixed !important;
             inset: 0 !important;
-            z-index: 999999 !important;
+            z-index: 99999 !important;
             background: #000 !important;
         }
 
-        .video-wrapper-box.rotated-landscape iframe,
-        .video-wrapper-box.rotated-landscape video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: contain !important;
+        /* إظهار أشرطة الحماية العلوية والسفلية فقط عند ملء الشاشة لمنع الخروج */
+        .video-wrapper-box:fullscreen #fs-top-bar,
+        .video-wrapper-box:-webkit-full-screen #fs-top-bar,
+        .video-wrapper-box:-moz-full-screen #fs-top-bar,
+        .video-wrapper-box:fullscreen #fs-bottom-bar,
+        .video-wrapper-box:-webkit-full-screen #fs-bottom-bar,
+        .video-wrapper-box:-moz-full-screen #fs-bottom-bar {
+            opacity: 1 !important;
+            pointer-events: auto !important;
         }
 
         /* طبقة التحكم المخصصة فوق فيديو اليوتيوب */
@@ -141,13 +144,6 @@
         .video-wrapper-box:hover .custom-player-overlay,
         .custom-player-overlay.active-controls {
             opacity: 1;
-        }
-
-        .yt-protection-top {
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 50px;
-            z-index: 25;
-            background: transparent;
         }
 
         .horizontal-scroll-container {
@@ -389,15 +385,33 @@
                     <span id="playlist-course-title" class="text-xs font-black text-amber-900 max-w-[200px] truncate playlist-main-title">اسم الكورس المختار</span>
                 </div>
 
-                <!-- مشغل فيديو مخصص متطور مع مشغل فوق اليوتيوب وزر القلب والتكبير -->
+                <!-- مشغل فيديو مخصص متطور مع أشرطة حماية عُليا وسُفلى لمنع الخروج -->
                 <div class="video-wrapper-box" id="video-container-box" onclick="toggleOverlayControls()">
-                    <div class="yt-protection-top"></div>
                     
+                    <!-- شريط الحماية العُلوي (يظهر في ملء الشاشة لمنع النقر على عنوان/زر مشاركة اليوتيوب) -->
+                    <div id="fs-top-bar" class="absolute top-0 left-0 right-0 h-12 bg-black/90 border-b border-white/10 flex items-center justify-between px-4 text-white text-xs z-40 opacity-0 transition-opacity duration-300 pointer-events-none">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-amber-500"></i>
+                            <span class="font-bold">منصة التميز التعليمية - وضع الحماية الآمن</span>
+                        </div>
+                        <button onclick="exitVideoFullscreen(event)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold pointer-events-auto">
+                            <i class="fa-solid fa-xmark ml-1"></i> إغلاق ملء الشاشة
+                        </button>
+                    </div>
+
                     <div id="video-player-frame" class="w-full h-full flex items-center justify-center relative">
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
                             <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
                             <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
                         </div>
+                    </div>
+
+                    <!-- شريط الحماية السُفلي (يظهر في ملء الشاشة لمنع النقر على شعار يوتيوب) -->
+                    <div id="fs-bottom-bar" class="absolute bottom-0 left-0 right-0 h-12 bg-black/90 border-t border-white/10 flex items-center justify-between px-4 text-white text-xs z-40 opacity-0 transition-opacity duration-300 pointer-events-none">
+                        <span class="text-[10px] text-slate-400">محمي من الخروج لتجربة تعليمية مركزة</span>
+                        <button onclick="exitVideoFullscreen(event)" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold pointer-events-auto">
+                            <i class="fa-solid fa-compress ml-1"></i> تصغير الشاشة
+                        </button>
                     </div>
 
                     <!-- طبقة التحكم المخصصة (Custom Overlay Controller) فوق اليوتيوب -->
@@ -417,13 +431,9 @@
                                     <option value="large">480p</option>
                                     <option value="medium">360p</option>
                                 </select>
-                                <!-- زر قلب وتكبير الشاشة بالعرض -->
-                                <button onclick="toggleMainVideoRotate(event)" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded-lg text-[10px] border border-white/20 flex items-center gap-1 font-bold shadow-md" title="قلب وتكبير الشاشة بالعرض">
-                                    <i class="fa-solid fa-rotate"></i> قلب
-                                </button>
                                 <!-- زر ملء الشاشة -->
-                                <button onclick="requestVideoFullscreen(event)" class="bg-black/60 hover:bg-black px-2 py-1 rounded-lg text-[10px] border border-white/20 flex items-center gap-1" title="ملء الشاشة">
-                                    <i class="fa-solid fa-expand"></i>
+                                <button onclick="requestVideoFullscreen(event)" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded-lg text-[10px] border border-white/20 flex items-center gap-1 font-bold shadow-md" title="ملء الشاشة">
+                                    <i class="fa-solid fa-expand"></i> ملء الشاشة
                                 </button>
                             </div>
                         </div>
@@ -607,22 +617,16 @@
         let reelsLoaded = false;
         let isReelsActive = false;
 
-        /* المتغيرات العامة لمشغل الدورة الرئيسي المخصص */
+        /* المتغيرات العامة لمشغل الدورة الرئيسي */
         let mainYTPlayer = null;
         let mainPlayerProgressTimer = null;
         let overlayTimer = null;
         let isSubtitlesOn = false;
-        let isMainVideoRotated = false;
-        let originalVideoParent = null;
-        let originalVideoNextSibling = null;
 
         document.addEventListener('touchstart', () => {
             if (!reelsUserInteracted) reelsUserInteracted = true;
         }, { passive: true });
 
-        /* =======================================================
-           ميزة التحديث بالسحب للأسفل
-        ======================================================= */
         let startY = 0;
         let currentY = 0;
         let isPulling = false;
@@ -1417,9 +1421,7 @@
             document.getElementById('custom-player-overlay').classList.remove('active-controls');
         }
 
-        /* =======================================================
-           تشغيل مشغل فيديو المادة مع واجهة تحكم مخصصة
-        ======================================================= */
+        /* تشغيل مشغل الفيديو مع التحكم المخصص */
         function playSelectedVideo(url, title) {
             pauseAllReelsVideos();
             const playerFrame = document.getElementById('video-player-frame');
@@ -1462,6 +1464,9 @@
                 directVid.addEventListener('timeupdate', updateDirectVideoProgress);
             }
             toggleOverlayControls();
+
+            // دخول وضع ملء الشاشة تلقائياً
+            requestVideoFullscreen();
         }
 
         function onMainPlayerReady(e) {
@@ -1598,43 +1603,6 @@
             }, 3500);
         }
 
-        /* 🟢 دالة تدوير الشاشة وتكبيرها لتشمل جميع أبعاد الهاتف مع الهروب من حدود القالب */
-        function toggleMainVideoRotate(event) {
-            if(event) event.stopPropagation();
-            isMainVideoRotated = !isMainVideoRotated;
-            const container = document.getElementById('video-container-box');
-            
-            if (isMainVideoRotated) {
-                if (!originalVideoParent) {
-                    originalVideoParent = container.parentNode;
-                    originalVideoNextSibling = container.nextSibling;
-                }
-                document.body.appendChild(container);
-                container.classList.add('rotated-landscape');
-
-                if (!document.fullscreenElement && container.requestFullscreen) {
-                    container.requestFullscreen().catch(() => {});
-                }
-                if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(() => {});
-                }
-            } else {
-                container.classList.remove('rotated-landscape');
-                if (originalVideoParent) {
-                    if (originalVideoNextSibling) {
-                        originalVideoParent.insertBefore(container, originalVideoNextSibling);
-                    } else {
-                        originalVideoParent.appendChild(container);
-                    }
-                    originalVideoParent = null;
-                    originalVideoNextSibling = null;
-                }
-                if (document.fullscreenElement && document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                }
-            }
-        }
-
         function requestVideoFullscreen(event) {
             if(event) event.stopPropagation();
 
@@ -1642,61 +1610,34 @@
             let videoEl = document.getElementById('main-course-direct-video');
 
             if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
-                if (!originalVideoParent) {
-                    originalVideoParent = wrapper.parentNode;
-                    originalVideoNextSibling = wrapper.nextSibling;
-                }
-                document.body.appendChild(wrapper);
-                wrapper.classList.add('rotated-landscape');
-
                 if (wrapper.requestFullscreen) {
-                    wrapper.requestFullscreen().then(() => {
-                        if (screen.orientation && screen.orientation.lock) {
-                            screen.orientation.lock('landscape').catch(() => {});
-                        }
-                    }).catch(() => {});
+                    wrapper.requestFullscreen().catch(() => {});
                 } else if (wrapper.webkitRequestFullscreen) {
                     wrapper.webkitRequestFullscreen();
+                } else if (wrapper.mozRequestFullScreen) {
+                    wrapper.mozRequestFullScreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
                 } else if (videoEl && videoEl.webkitEnterFullscreen) {
                     videoEl.webkitEnterFullscreen();
                 }
             } else {
-                wrapper.classList.remove('rotated-landscape');
-                if (originalVideoParent) {
-                    if (originalVideoNextSibling) {
-                        originalVideoParent.insertBefore(wrapper, originalVideoNextSibling);
-                    } else {
-                        originalVideoParent.appendChild(wrapper);
-                    }
-                    originalVideoParent = null;
-                    originalVideoNextSibling = null;
-                }
-                if (document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                }
+                exitVideoFullscreen();
             }
         }
 
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement && !document.webkitIsFullScreen) {
-                const container = document.getElementById('video-container-box');
-                if (isMainVideoRotated) {
-                    isMainVideoRotated = false;
-                    container.classList.remove('rotated-landscape');
-                    if (originalVideoParent) {
-                        if (originalVideoNextSibling) {
-                            originalVideoParent.insertBefore(container, originalVideoNextSibling);
-                        } else {
-                            originalVideoParent.appendChild(container);
-                        }
-                        originalVideoParent = null;
-                        originalVideoNextSibling = null;
-                    }
-                }
+        function exitVideoFullscreen(event) {
+            if(event) event.stopPropagation();
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
             }
-        });
+        }
 
         function filterCoursesBy(type, id, value) {
             currentFilter.type = type;
