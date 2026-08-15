@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <title>منصة التميز التعليمية</title>
     <meta name="apple-mobile-web-app-title" content="منصة التميز">
@@ -22,21 +22,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <style>
-        body {
+        :root {
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-top: env(safe-area-inset-top, 0px);
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
             font-family: 'Tajawal', sans-serif;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+            background: #020617;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none !important;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none !important; }
+        .hide-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+
         .gradient-bg {
             background: linear-gradient(-45deg, #fcfbf7, #f5f2eb, #e2e8f0, #fcfbf7);
             background-size: 400% 400%;
@@ -48,7 +52,43 @@
             100% { background-position: 0% 50%; }
         }
         
-        /* حاوية المشغل المطورة لتأخذ القالب القديم بشكل مثالي */
+        #app-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #app-content {
+            flex: 1;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y;
+            scroll-behavior: smooth;
+            overscroll-behavior-y: bounce;
+            padding-bottom: calc(95px + var(--safe-bottom));
+            position: relative;
+        }
+
+        #pull-to-refresh-spinner {
+            position: absolute;
+            top: -50px;
+            left: 0;
+            right: 0;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #pull-to-refresh-spinner.pulling { opacity: 1; }
+
+        /* حاوية الفيديو الرئيسية ومشغل اليوتيوب المخصص */
         .video-wrapper-box {
             position: relative;
             width: 100%;
@@ -71,448 +111,26 @@
             object-fit: cover !important;
         }
     
-/* =========================================
-   الأساسيات والمتغيرات
-========================================= */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-}
 
-:root {
-    --app-width: 100%;
-    --app-height: 100vh;
-    --border-radius: 0px;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --primary-color: #2563eb;
-    --accent-color: #38bdf8;
-}
+        .horizontal-scroll-container {
+            display: flex;
+            gap: 0.75rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            touch-action: pan-x;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
 
+        .scroll-item {
+            scroll-snap-align: start;
+            flex-shrink: 0;
+            user-select: none;
+        }
 
+        #app-nav-wrapper { bottom: calc(10px + var(--safe-bottom)); }
 
-.reels-screen {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-@media (min-width: 600px) and (max-width: 1024px) {
-    :root {
-        --app-width: 480px;
-        --app-height: 88vh;
-        --border-radius: 28px;
-    }
-    .reels-screen {
-        width: var(--app-width);
-        height: var(--app-height);
-        border-radius: var(--border-radius);
-        border: 4px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
-    }
-}
-
-@media (min-width: 1025px) {
-    :root {
-        --app-width: 410px;
-        --app-height: 85vh;
-        --border-radius: 36px;
-    }
-    .reels-screen {
-        width: var(--app-width);
-        height: var(--app-height);
-        max-height: 880px;
-        border-radius: var(--border-radius);
-        border: 8px solid #1e293b;
-        box-shadow: 
-            0 25px 50px -12px rgba(0, 0, 0, 0.7),
-            0 0 0 1px rgba(255, 255, 255, 0.1);
-    }
-}
-
-.splash-screen {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 500;
-    gap: 24px;
-    transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
-}
-
-.splash-screen.hide {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.splash-logo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.splash-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 30px rgba(37, 99, 235, 0.5);
-    animation: pulseGlow 2s infinite alternate ease-in-out;
-}
-
-.splash-icon svg {
-    width: 44px;
-    height: 44px;
-    fill: white;
-}
-
-@keyframes pulseGlow {
-    0% { transform: scale(0.96); box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
-    100% { transform: scale(1.04); box-shadow: 0 0 40px rgba(56, 189, 248, 0.7); }
-}
-
-.splash-title {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    background: linear-gradient(to right, #ffffff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-align: center;
-}
-
-.splash-subtitle {
-    font-size: 13px;
-    color: #64748b;
-    margin-top: -6px;
-    font-weight: 500;
-}
-
-.splash-loader {
-    width: 180px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-.progress-bar-bg {
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-bar-fill {
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-    border-radius: 10px;
-    transition: width 0.3s ease;
-}
-
-.splash-status {
-    font-size: 11px;
-    color: #94a3b8;
-}
-
-#feed {
-    width: 100%;
-    height: 100%;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    scrollbar-width: none;
-    overscroll-behavior-y: contain;
-}
-
-#feed::-webkit-scrollbar { display: none; }
-
-.video-card {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    background: #000;
-    overflow: hidden;
-}
-
-.media-container {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #000;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.media-container iframe, 
-.media-container video {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border: none;
-    object-fit: cover;
-}
-
-.media-container.rotated {
-    transform: rotate(90deg) scale(1.35);
-}
-
-.tap-area {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    z-index: 15;
-    background: transparent;
-    touch-action: manipulation;
-}
-
-.tap-left { left: 0; width: 35%; }
-.tap-center { left: 35%; width: 30%; }
-.tap-right { right: 0; width: 35%; }
-
-.seek-feedback, .play-feedback {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%) scale(0.8);
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(4px);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    font-size: 26px;
-    z-index: 50;
-    pointer-events: none;
-    opacity: 0;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.seek-feedback span { font-size: 11px; margin-top: 2px; }
-
-.feedback-left { left: 15%; }
-.feedback-right { right: 15%; }
-.feedback-center { left: 50%; transform: translate(-50%, -50%) scale(0.8); }
-
-.seek-feedback.show, .play-feedback.show {
-    opacity: 1;
-    transform: translateY(-50%) scale(1.1);
-}
-
-.feedback-center.show {
-    transform: translate(-50%, -50%) scale(1.1);
-}
-
-.gradient {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to bottom, 
-        rgba(0,0,0,0.6) 0%, 
-        transparent 15%, 
-        transparent 65%, 
-        rgba(0,0,0,0.85) 100%
-    );
-    z-index: 10;
-    pointer-events: none;
-}
-
-.mini-header {
-    position: absolute;
-    top: calc(12px + var(--safe-top));
-    left: 12px;
-    right: 12px;
-    height: 40px;
-    background: rgba(20, 20, 20, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 14px;
-    z-index: 100;
-    color: white;
-}
-
-.header-brand {
-    font-size: 13px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.mini-footer {
-    position: absolute;
-    bottom: calc(6px + var(--safe-bottom));
-    left: 8px;
-    right: 8px;
-    height: 48px;
-    background: rgba(20, 20, 20, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 24px;
-    z-index: 100;
-}
-
-.unmute-overlay {
-    position: absolute;
-    top: calc(64px + var(--safe-top));
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(37, 99, 235, 0.9);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    z-index: 200;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.05); }
-}
-
-.info {
-    position: absolute;
-    bottom: calc(66px + var(--safe-bottom));
-    right: 16px;
-    left: 75px;
-    color: white;
-    z-index: 20;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-}
-
-.subject {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(8px);
-    padding: 3px 8px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: bold;
-    margin-bottom: 6px;
-}
-
-.title {
-    font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 4px;
-}
-
-.description {
-    font-size: 12px;
-    opacity: 0.85;
-    line-height: 1.3;
-}
-
-.actions {
-    position: absolute;
-    left: 12px;
-    bottom: calc(66px + var(--safe-bottom));
-    z-index: 40;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.action {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.45);
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.1s ease;
-}
-
-.action:active { transform: scale(0.85); }
-
-.rotate-btn {
-    position: absolute;
-    top: calc(64px + var(--safe-top));
-    right: 16px;
-    z-index: 150;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    backdrop-filter: blur(8px);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.rotate-btn:hover { background: rgba(37, 99, 235, 0.8); }
-
-.reels-screen{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;background:#000!important;z-index:1;}
-.reels-screen #feed{height:100%!important;}
-#tab-reels{position:absolute;inset:0;background:#000;z-index:80;overflow:hidden;}
-/* إصلاح ارتفاع حاوية الريلز داخل الصفحة الرئيسية */
-#tab-reels .app-container{
-    position:relative!important;
-    width:100%!important;
-    height:100%!important;
-    max-width:none!important;
-    max-height:none!important;
-    margin:0!important;
-    background:#000!important;
-    overflow:hidden!important;
-    display:flex!important;
-    flex-direction:column!important;
-}
-#tab-reels .app-container #feed{
-    flex:1 1 auto!important;
-    min-height:0!important;
-    height:100%!important;
-}
-.reels-back-btn{position:absolute;top:calc(12px + var(--safe-top));right:12px;z-index:300;background:rgba(0,0,0,.65);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:7px 13px;font-size:12px;font-weight:700;backdrop-filter:blur(10px);}
-
-
-
-/* ===== CSS الريلز المستخرج ===== */
-#reels-standalone-page {
+        #reels-standalone-page {
             position: fixed; inset: 0; width: 100vw; height: 100vh;
             z-index: 9999; background: #000; display: flex; flex-direction: column;
             opacity: 0; pointer-events: none;
@@ -644,8 +262,7 @@
             backdrop-filter: blur(8px); font-size: 14px; cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-    
-</style>
+    </style>
 </head>
 <body class="gradient-bg flex items-center justify-center min-h-screen p-0 md:p-4 transition-colors duration-300" id="body-layout">
 
@@ -658,19 +275,20 @@
             <p class="text-amber-800 text-xs mb-6 animate__animated animate__fadeInUp animate__delay-1s">نصنع لك مستقبلاً مشرقاً بأحدث التقنيات</p>
             <div class="flex items-center gap-2 text-amber-700 text-xs bg-white px-4 py-2 rounded-full border border-amber-200/60 animate__animated animate__fadeIn animate__delay-2s">
                 <i class="fa-solid fa-circle-notch animate-spin"></i>
-                <span id="loader-text">جاري مزامنة المشغل المطور وتحديث البيانات...</span>
+                <span id="loader-text">جاري مزامنة التطبيق وتحديث البيانات...</span>
             </div>
         </div>
     </div>
 
-    <div class="w-full h-screen md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl relative flex flex-col overflow-hidden border border-amber-100/80 transition-colors duration-300" id="app-container">
+    <!-- التطبيق الرئيسي -->
+    <div class="w-full h-full md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl transition-colors duration-300" id="app-container">
         
-        <header class="bg-[#f5f2eb] border-b border-amber-200/60 px-5 py-4 flex items-center justify-between z-30 transition-all duration-300" id="app-header">
+        <header class="bg-[#f5f2eb] border-b border-amber-200/60 px-5 py-4 flex items-center justify-between z-30 flex-shrink-0 transition-all duration-300" id="app-header">
             <div class="flex items-center gap-2.5">
                 <div id="logo-icon-bg" class="w-9 h-9 rounded-xl bg-amber-100 border border-amber-200/60 flex items-center justify-center text-base shadow-sm">
                     <img src="logo.png" alt="شعار" class="w-full h-full object-cover" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap text-amber-700\'></i>';">
                 </div>
-                <span class="text-base font-black text-amber-955 tracking-wide transition-colors" id="logo-text">منصة التميز</span>
+                <span class="text-base font-black text-amber-950 tracking-wide transition-colors" id="logo-text">منصة التميز</span>
             </div>
             <div class="flex items-center gap-2">
                 <a href="https://t.me/Zl2002zl" target="_blank" class="w-8 h-8 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center text-sm transition-transform hover:scale-105" title="قناة التليجرام"><i class="fa-brands fa-telegram"></i></a>
@@ -682,8 +300,14 @@
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 pb-28 hide-scrollbar z-20 space-y-5" id="app-content">
+        <div class="p-4 hide-scrollbar space-y-5" id="app-content">
             
+            <div id="pull-to-refresh-spinner">
+                <div class="w-9 h-9 bg-white dark:bg-slate-800 rounded-full shadow-lg border border-amber-300 flex items-center justify-center text-amber-600 text-sm">
+                    <i class="fa-solid fa-arrow-down id-pull-icon transition-transform duration-200"></i>
+                </div>
+            </div>
+
             <div id="tab-home" class="space-y-5 tab-page">
                 <div class="w-full h-48 rounded-2xl bg-white relative overflow-hidden shadow-lg border border-amber-200/60 animate__animated animate__fadeInDown">
                     <img id="dynamic-banner-img" src="" class="w-full h-full object-cover absolute inset-0 transition-opacity duration-500 opacity-60">
@@ -693,35 +317,16 @@
                     </div>
                 </div>
 
-                <!-- زر الريلز البارز -->
-                <button onclick="switchTab('reels')" class="w-full relative overflow-hidden rounded-2xl p-4 text-right bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xl shadow-blue-500/20 border border-white/10 active:scale-[0.98] transition-all">
-                    <div class="absolute -left-8 -top-8 w-28 h-28 bg-white/15 rounded-full blur-2xl"></div>
-                    <div class="absolute right-1/3 -bottom-10 w-32 h-32 bg-cyan-300/20 rounded-full blur-2xl"></div>
-                    <div class="relative flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-2xl shadow-lg">
-                            <i class="fa-solid fa-clapperboard"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2">
-                                <span class="text-base font-black">ريلز منصة التميز</span>
-                                <span class="text-[9px] bg-white/20 px-2 py-1 rounded-full font-bold">جديد</span>
-                            </div>
-                            <p class="text-[10px] text-white/80 mt-1">دروس قصيرة — اسحب للأعلى وانتقل بين الفيديوهات</p>
-                        </div>
-                        <i class="fa-solid fa-chevron-left text-white/80"></i>
-                    </div>
-                </button>
-
                 <div>
                     <h3 class="text-xs font-bold text-amber-900 mb-2.5 tracking-wider uppercase transition-colors" id="title-subjects"><i class="fa-solid fa-cubes ml-1 text-blue-500"></i> المواد الدراسية</h3>
-                    <div class="flex gap-3 overflow-x-auto pb-1 hide-scrollbar" id="subjects-container" style="scroll-snap-type: x mandatory;">
+                    <div class="horizontal-scroll-container hide-scrollbar" id="subjects-container">
                         <div class="text-xs text-slate-600 text-center py-4 w-full">جاري تحميل المواد...</div>
                     </div>
                 </div>
 
                 <div>
                     <h3 class="text-xs font-bold text-amber-900 mb-2.5 tracking-wider uppercase transition-colors" id="title-teachers"><i class="fa-solid fa-user-graduate ml-1 text-emerald-500"></i> أعضاء هيئة التدريس</h3>
-                    <div class="flex gap-4 overflow-x-auto pb-2 hide-scrollbar" id="teachers-container" style="scroll-snap-type: x mandatory;">
+                    <div class="horizontal-scroll-container hide-scrollbar" id="teachers-container">
                         <div class="text-xs text-slate-600 text-center py-4 w-full">جاري جلب المدرسين...</div>
                     </div>
                 </div>
@@ -734,7 +339,7 @@
                         </div>
                         <button id="clear-filter-btn" onclick="clearCourseFilter()" class="hidden text-[10px] text-red-400 font-bold hover:underline animate__animated animate__fadeIn">عرض الكل</button>
                     </div>
-                    <div class="flex gap-3 overflow-x-auto pb-1 hide-scrollbar" id="home-courses-container" style="scroll-snap-type: x mandatory;">
+                    <div class="horizontal-scroll-container hide-scrollbar" id="home-courses-container">
                         <div class="text-xs text-slate-600 text-center py-4 w-full">جاري تحميل الكورسات...</div>
                     </div>
                 </div>
@@ -746,15 +351,21 @@
                     <span id="playlist-course-title" class="text-xs font-black text-amber-900 max-w-[200px] truncate playlist-main-title">اسم الكورس المختار</span>
                 </div>
 
-                <!-- حاوية المشغل المطورة والمتوافقة بالكامل مع حجم شاشتك والقالب القديم -->
+                <!-- مشغل فيديو مخصص متطور مع مشغل فوق اليوتيوب وزر القلب والتكبير -->
                 <div class="video-wrapper-box" id="video-container-box">
-                    <div id="video-player-frame" class="w-full h-full flex items-center justify-center">
+                    <div class="yt-protection-top"></div>
+                    
+                    <div id="video-player-frame" class="w-full h-full flex items-center justify-center relative">
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
                             <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
                             <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
                         </div>
                     </div>
+
+                    <!-- طبقة التحكم المخصصة (Custom Overlay Controller) فوق اليوتيوب -->
+
                 </div>
+
                 <h3 id="current-playing-title" class="text-[11px] font-bold text-amber-700 px-1 truncate"></h3>
 
                 <div class="space-y-4" id="course-chapters-list"></div>
@@ -815,6 +426,37 @@
 
         </div>
 
+        <div class="absolute inset-x-4 h-16 z-40" id="app-nav-wrapper">
+            <nav class="w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-amber-900/10 transition-colors duration-300" id="app-nav">
+                <button onclick="switchTab('courses')" id="nav-courses" class="flex flex-col items-center justify-center gap-0.5 text-slate-400 transition-colors h-full">
+                    <i class="fa-solid fa-file-signature text-base"></i>
+                    <span class="text-[10px]">الامتحان</span>
+                </button>
+
+                <div class="flex flex-col items-center justify-center relative">
+                    <div id="center-nav-glow" class="absolute inset-0 bg-amber-500/20 blur-xl rounded-full scale-125"></div>
+                    <button onclick="switchTab('home')" id="nav-home" class="w-11 h-11 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-base shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all">
+                        <i class="fa-solid fa-house"></i>
+                    </button>
+                    <span id="nav-home-text" class="text-[9px] font-black text-amber-700 mt-0.5">الرئيسية</span>
+                </div>
+
+                <div class="flex flex-col items-center justify-center relative">
+                    <div id="reels-nav-glow" class="absolute inset-0 bg-sky-500/20 blur-xl rounded-full scale-125"></div>
+                    <button onclick="openStandaloneReels()" id="nav-reels" class="w-11 h-11 rounded-full bg-gradient-to-b from-sky-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-sky-500/30 relative border-2 border-[#fcfbf7] transition-all">
+                        <i class="fa-solid fa-circle-play"></i>
+                    </button>
+                    <span id="nav-reels-text" class="text-[9px] font-black text-sky-600 mt-0.5">ريلز</span>
+                </div>
+
+                <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center justify-center gap-0.5 text-slate-400 transition-colors h-full">
+                    <i class="fa-solid fa-circle-user text-base"></i>
+                    <span class="text-[10px]">حسابي</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
     <!-- واجهة الريلز المستقلة -->
     <div id="reels-standalone-page">
         <div id="reels-splash-screen">
@@ -849,34 +491,6 @@
         <div id="reels-feed"></div>
     </div>
 
-        <div class="absolute bottom-4 inset-x-4 h-20 z-40" id="app-nav-wrapper">
-            <nav class="w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-amber-900/10 transition-colors duration-300" id="app-nav">
-                <button onclick="switchTab('courses')" id="nav-courses" class="flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors h-full">
-                    <i class="fa-solid fa-file-signature text-lg"></i><span class="text-[11px]">الامتحان</span>
-                </button>
-
-                <div class="absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
-                    <div id="center-nav-glow" class="absolute inset-0 bg-amber-500/20 blur-xl rounded-full scale-125"></div>
-                    <button onclick="switchTab('home')" id="nav-home" class="w-14 h-14 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-xl shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all transform hover:scale-105 active:scale-95">
-                        <i class="fa-solid fa-house"></i>
-                    </button>
-                    <span id="nav-home-text" class="text-[11px] font-black text-amber-700 mt-1">الرئيسية</span>
-                </div>
-
-                <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center justify-center gap-1 text-blue-600 font-black transition-all h-full relative">
-                    <span class="absolute w-10 h-10 rounded-full bg-blue-500/10 blur-lg"></span>
-                    <i class="fa-solid fa-clapperboard text-xl relative"></i>
-                    <span class="text-[11px] relative">ريلز</span>
-                </button>
-
-                <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors h-full">
-                    <i class="fa-solid fa-circle-user text-lg"></i><span class="text-[11px]">حسابي</span>
-                </button>
-            </nav>
-        </div>
-    </div>
-
-    <!-- استدعاء واجهة برمجة تطبيقات يوتيوب الرسمية لتسهيل التحكم وملء الشاشة الكامل -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
@@ -895,6 +509,111 @@
         let db = { subjects: [], teachers: [], accounts: [], courses: [], codes: [], lessons: [], exams: [] };
         let activatedCourseIds = [];
         let currentFilter = { type: null, value: null };
+
+        const REELS_SHEET_ID = "1Vt12P6GyuOx0dEEtmFM6fxywOC5zJ6z0baETTmgeD0g";
+        const REELS_SHEET_URL = `https://docs.google.com/spreadsheets/d/${REELS_SHEET_ID}/gviz/tq?tqx=out:json`;
+
+        let reelsVideos = [];
+        let reelsPlayers = {}; 
+        let reelsCurrentIndex = 0;
+        let reelsUserInteracted = false;
+        let reelsLoaded = false;
+        let isReelsActive = false;
+
+        /* المتغيرات العامة لمشغل الدورة الرئيسي المخصص */
+        let mainYTPlayer = null;
+        let mainPlayerProgressTimer = null;
+        let overlayTimer = null;
+        let isSubtitlesOn = false;
+        let isMainVideoRotated = false;
+
+        document.addEventListener('touchstart', () => {
+            if (!reelsUserInteracted) reelsUserInteracted = true;
+        }, { passive: true });
+
+        /* =======================================================
+           ميزة التحديث بالسحب للأسفل
+        ======================================================= */
+        let startY = 0;
+        let currentY = 0;
+        let isPulling = false;
+
+        const appContent = document.getElementById('app-content');
+        const pullSpinner = document.getElementById('pull-to-refresh-spinner');
+        const pullIcon = pullSpinner.querySelector('.id-pull-icon');
+
+        appContent.addEventListener('touchstart', (e) => {
+            if (appContent.scrollTop === 0) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        }, { passive: true });
+
+        appContent.addEventListener('touchmove', (e) => {
+            if (!isPulling) return;
+            currentY = e.touches[0].clientY;
+            let pullDistance = currentY - startY;
+
+            if (pullDistance > 0 && appContent.scrollTop === 0) {
+                let moveY = Math.min(pullDistance * 0.4, 70);
+                pullSpinner.style.transform = `translateY(${moveY}px)`;
+                pullSpinner.classList.add('pulling');
+
+                if (moveY >= 50) {
+                    pullIcon.className = "fa-solid fa-arrow-rotate-right animate-spin";
+                } else {
+                    pullIcon.className = "fa-solid fa-arrow-down transition-transform duration-200";
+                }
+            }
+        }, { passive: true });
+
+        appContent.addEventListener('touchend', () => {
+            if (!isPulling) return;
+            let pullDistance = currentY - startY;
+
+            if (pullDistance > 110 && appContent.scrollTop === 0) {
+                pullSpinner.style.transform = `translateY(60px)`;
+                pullIcon.className = "fa-solid fa-circle-notch animate-spin text-amber-600";
+                
+                syncAppDatabase().then(() => {
+                    setTimeout(() => {
+                        pullSpinner.style.transform = `translateY(0px)`;
+                        pullSpinner.classList.remove('pulling');
+                        pullIcon.className = "fa-solid fa-arrow-down";
+                    }, 500);
+                });
+            } else {
+                pullSpinner.style.transform = `translateY(0px)`;
+                pullSpinner.classList.remove('pulling');
+            }
+            isPulling = false;
+            startY = 0;
+            currentY = 0;
+        });
+
+        function openStandaloneReels() {
+            reelsUserInteracted = true;
+            isReelsActive = true;
+            const page = document.getElementById('reels-standalone-page');
+            const splash = document.getElementById('reels-splash-screen');
+            
+            splash.classList.remove('hidden-splash');
+            page.classList.add('active');
+            pauseCourseMainVideo(); 
+
+            setTimeout(() => {
+                splash.classList.add('hidden-splash');
+                if (reelsLoaded && reelsVideos.length > 0) {
+                    playReelsVideo(reelsCurrentIndex);
+                }
+            }, 300);
+        }
+
+        function closeStandaloneReels() {
+            isReelsActive = false;
+            document.getElementById('reels-standalone-page').classList.remove('active');
+            pauseAllReelsVideos();
+        }
 
         function convertDriveUrlToDirect(url) {
             if (!url) return "";
@@ -956,6 +675,8 @@
 
         async function syncAppDatabase() {
             loadSavedStorageData();
+            preloadReelsInBackground();
+
             try {
                 const [resSub, resTea, resAcc, resCou, resCod, resLes, resExa] = await Promise.all([
                     fetch(BASE_CSV + GIDS.subjects),
@@ -990,10 +711,394 @@
 
                 renderUIElements();
                 renderExamsSection();
+
             } catch (err) {
                 document.getElementById('loader-text').innerText = "فشلت المزامنة، تأكد من اتصالك بالإنترنت.";
                 console.error(err);
             }
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function isTikTokUrl(url) { return url.includes("tiktok.com"); }
+        function extractTikTokId(url) { const match = url.match(/\/video\/(\d+)/); return match ? match[1] : null; }
+        function isDirectVideoUrl(url) {
+            return (url.startsWith("http://") || url.startsWith("https://")) && 
+                   (url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".ogg") || (!url.includes("youtu") && !url.includes("tiktok.com")));
+        }
+        function extractYouTubeId(url) {
+            if (!url.includes("http")) return url;
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+            return match ? match[1] : url;
+        }
+
+        async function preloadReelsInBackground() {
+            try {
+                const response = await fetch(REELS_SHEET_URL);
+                const text = await response.text();
+                const json = JSON.parse(text.substr(47).slice(0, -2));
+                const rows = json.table.rows;
+
+                const parsedVideos = rows.map(row => {
+                    const rawSource = row.c[0] ? String(row.c[0].v).trim() : "";
+                    let type = "youtube";
+                    let source = rawSource;
+                    let isLandscape = row.c[4] ? String(row.c[4].v).toLowerCase() === 'true' || String(row.c[4].v) === '16:9' : false;
+
+                    if (isTikTokUrl(rawSource)) {
+                        type = "tiktok";
+                        source = extractTikTokId(rawSource) || rawSource;
+                    } else if (isDirectVideoUrl(rawSource)) {
+                        type = "direct";
+                    } else {
+                        source = extractYouTubeId(rawSource);
+                    }
+
+                    return {
+                        source: source,
+                        type: type,
+                        isLandscape: isLandscape,
+                        subject: row.c[1] ? row.c[1].v : "درس تعليمي",
+                        title: row.c[2] ? row.c[2].v : "",
+                        description: row.c[3] ? row.c[3].v : ""
+                    };
+                }).filter(v => v.source !== "" && v.source.toLowerCase() !== "id");
+
+                if(parsedVideos.length > 0) {
+                    reelsVideos = shuffleArray(parsedVideos);
+                    buildReelsFeed();
+                    reelsLoaded = true;
+                }
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
+            }
+        }
+
+        function buildReelsFeed() {
+            const feed = document.getElementById("reels-feed");
+            feed.innerHTML = "";
+            reelsVideos.forEach((video, index) => {
+                const card = document.createElement("section");
+                card.className = "reels-video-card";
+                card.id = `reels-card-${index}`;
+
+                let mediaHTML = "";
+                if (video.type === "direct") {
+                    mediaHTML = `
+                        <video id="reels-direct-video-${index}" playsinline loop preload="auto">
+                            <source src="${video.source}" type="video/mp4">
+                        </video>
+                    `;
+                } else if (video.type === "tiktok") {
+                    mediaHTML = `
+                        <iframe src="https://www.tiktok.com/embed/v2/${video.source}" 
+                                allow="autoplay; encrypted-media" 
+                                allowfullscreen 
+                                style="width: 100%; height: 100%; border: none;"></iframe>
+                    `;
+                } else {
+                    mediaHTML = `<div id="reels-player-${index}"></div>`;
+                }
+
+                const rotateClass = video.isLandscape ? 'rotated' : '';
+
+                card.innerHTML = `
+                    <div class="reels-media-container ${rotateClass}" id="reels-media-container-${index}">
+                        ${mediaHTML}
+                    </div>
+
+                    <div class="reels-tap-area reels-tap-left" data-side="left" data-index="${index}"></div>
+                    <div class="reels-tap-area reels-tap-center" onclick="toggleReelsPlayPause(${index})" data-index="${index}"></div>
+                    <div class="reels-tap-area reels-tap-right" data-side="right" data-index="${index}"></div>
+
+                    <div class="reels-seek-feedback reels-feedback-left" id="reels-feedback-left-${index}">
+                        ↶ <span>-5 ثواني</span>
+                    </div>
+                    <div class="reels-play-feedback reels-feedback-center" id="reels-feedback-center-${index}">▶</div>
+                    <div class="reels-seek-feedback reels-feedback-right" id="reels-feedback-right-${index}">
+                        ↷ <span>+5 ثواني</span>
+                    </div>
+
+                    <div class="reels-gradient"></div>
+
+                    <div class="reels-actions">
+                        <button class="reels-action sound-btn" id="reels-sound-btn-${index}" onclick="toggleReelsSound(${index}, this)">🔊</button>
+                    </div>
+
+                    <div class="reels-info">
+                        <span class="reels-subject">${video.subject}</span>
+                        <div class="reels-title">${video.title}</div>
+                        <div class="reels-description">${video.description}</div>
+                    </div>
+                `;
+                feed.appendChild(card);
+            });
+
+            initReelsObserversAndControls();
+            initYouTubeIframeForReels();
+        }
+
+        function initYouTubeIframeForReels() {
+            if (typeof YT !== 'undefined' && YT.Player) {
+                reelsVideos.forEach((video, index) => {
+                    if (video.type === "youtube" && !reelsPlayers[index]) {
+                        reelsPlayers[index] = new YT.Player(`reels-player-${index}`, {
+                            videoId: video.source,
+                            playerVars: {
+                                autoplay: 0, controls: 0, rel: 0, playsinline: 1,
+                                mute: 0, iv_load_policy: 3, cc_load_policy: 0,
+                                modestbranding: 1, enablejsapi: 1,
+                                origin: window.location.origin || '*'
+                            },
+                            events: {
+                                onReady: (e) => { e.target.pauseVideo(); },
+                                onStateChange: (e) => {
+                                    if (e.data === YT.PlayerState.ENDED) scrollReelsNext();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        function triggerReelsTriplePreload(currentIndex) {
+            const indicesToPreload = [currentIndex, currentIndex + 1, currentIndex - 1];
+            indicesToPreload.forEach(idx => {
+                if (idx >= 0 && idx < reelsVideos.length) {
+                    const video = reelsVideos[idx];
+                    if (video.type === "youtube" && reelsPlayers[idx] && typeof reelsPlayers[idx].cueVideoById === "function") {
+                        if (idx !== currentIndex) {
+                            reelsPlayers[idx].cueVideoById(video.source);
+                        }
+                    } else if (video.type === "direct") {
+                        const vid = document.getElementById(`reels-direct-video-${idx}`);
+                        if (vid && idx !== currentIndex) {
+                            vid.load();
+                        }
+                    }
+                }
+            });
+        }
+
+        function playReelsVideo(index) {
+            if (!isReelsActive) return;
+            reelsCurrentIndex = index;
+
+            reelsVideos.forEach((v, i) => {
+                if (i !== index) {
+                    if (v.type === "direct") {
+                        const vid = document.getElementById(`reels-direct-video-${i}`);
+                        if (vid) { vid.pause(); }
+                    } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
+                        reelsPlayers[i].pauseVideo();
+                    }
+                }
+            });
+
+            const currentVideo = reelsVideos[index];
+            if (!currentVideo) return;
+
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) {
+                    vid.muted = false;
+                    let playPromise = vid.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(() => {
+                            vid.muted = true;
+                            vid.play();
+                        });
+                    }
+                }
+            } else if (currentVideo.type === "youtube") {
+                if (reelsPlayers[index] && typeof reelsPlayers[index].playVideo === "function") {
+                    reelsPlayers[index].unMute();
+                    reelsPlayers[index].playVideo();
+                }
+            }
+
+            const btn = document.getElementById(`reels-sound-btn-${index}`);
+            if (btn) btn.innerHTML = "🔊";
+
+            triggerReelsTriplePreload(index);
+        }
+
+        function pauseAllReelsVideos() {
+            reelsVideos.forEach((v, i) => {
+                if (v.type === "direct") {
+                    const vid = document.getElementById(`reels-direct-video-${i}`);
+                    if (vid) vid.pause();
+                } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
+                    reelsPlayers[i].pauseVideo();
+                }
+            });
+        }
+
+        function toggleReelsPlayPause(index) {
+            if (!isReelsActive) return;
+            const currentVideo = reelsVideos[index];
+            const feedback = document.getElementById(`reels-feedback-center-${index}`);
+
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) {
+                    if (vid.paused) {
+                        vid.play();
+                        if (feedback) { feedback.innerHTML = "▶"; showReelsFeedbackElement(feedback); }
+                    } else {
+                        vid.pause();
+                        if (feedback) { feedback.innerHTML = "⏸"; showReelsFeedbackElement(feedback); }
+                    }
+                }
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (!player) return;
+                const state = player.getPlayerState();
+
+                if (state === YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                    if (feedback) { feedback.innerHTML = "⏸"; showReelsFeedbackElement(feedback); }
+                } else {
+                    player.playVideo();
+                    if (feedback) { feedback.innerHTML = "▶"; showReelsFeedbackElement(feedback); }
+                }
+            }
+        }
+
+        function toggleReelsRotate(index) {
+            const container = document.getElementById(`reels-media-container-${index}`);
+            if (container) container.classList.toggle("rotated");
+        }
+
+        function toggleReelsSound(index, button) {
+            const currentVideo = reelsVideos[index];
+
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) {
+                    vid.muted = !vid.muted;
+                    button.innerHTML = vid.muted ? "🔇" : "🔊";
+                }
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (!player) return;
+
+                if (player.isMuted()) {
+                    player.unMute();
+                    button.innerHTML = "🔊";
+                } else {
+                    player.mute();
+                    button.innerHTML = "🔇";
+                }
+            }
+        }
+
+        function seekReelsForward(index) {
+            if (!isReelsActive) return;
+            const currentVideo = reelsVideos[index];
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) vid.currentTime = Math.min(vid.currentTime + 5, vid.duration);
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (player && typeof player.getCurrentTime === "function") {
+                    player.seekTo(Math.min(player.getCurrentTime() + 5, player.getDuration()), true);
+                }
+            }
+            showReelsSeekFeedback(index, "right");
+        }
+
+        function seekReelsBackward(index) {
+            if (!isReelsActive) return;
+            const currentVideo = reelsVideos[index];
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) vid.currentTime = Math.max(vid.currentTime - 5, 0);
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (player && typeof player.getCurrentTime === "function") {
+                    player.seekTo(Math.max(player.getCurrentTime() - 5, 0), true);
+                }
+            }
+            showReelsSeekFeedback(index, "left");
+        }
+
+        function showReelsFeedbackElement(element) {
+            element.classList.remove("show");
+            void element.offsetWidth;
+            element.classList.add("show");
+            setTimeout(() => element.classList.remove("show"), 500);
+        }
+
+        function showReelsSeekFeedback(index, side) {
+            const id = side === "right" ? `reels-feedback-right-${index}` : `reels-feedback-left-${index}`;
+            const element = document.getElementById(id);
+            if (element) showReelsFeedbackElement(element);
+        }
+
+        function initReelsObserversAndControls() {
+            const cards = document.querySelectorAll(".reels-video-card");
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+                        const index = [...cards].indexOf(entry.target);
+                        if (index !== reelsCurrentIndex && isReelsActive) {
+                            playReelsVideo(index);
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            cards.forEach(card => observer.observe(card));
+
+            const tapTracker = new Map();
+
+            document.querySelectorAll(".reels-tap-left, .reels-tap-right").forEach(area => {
+                area.addEventListener("click", (e) => {
+                    const now = Date.now();
+                    const lastTime = tapTracker.get(area) || 0;
+                    const index = parseInt(area.dataset.index);
+                    const side = area.dataset.side;
+
+                    if (now - lastTime < 300) {
+                        if (side === "right") seekReelsForward(index);
+                        else seekReelsBackward(index);
+                        tapTracker.set(area, 0);
+                    } else {
+                        tapTracker.set(area, now);
+                    }
+                });
+            });
+        }
+
+        function scrollReelsNext() {
+            if (!isReelsActive) return;
+            const next = Math.min(reelsCurrentIndex + 1, reelsVideos.length - 1);
+            const containerHeight = document.getElementById("reels-feed").clientHeight;
+            document.getElementById("reels-feed").scrollTo({
+                top: next * containerHeight,
+                behavior: "smooth"
+            });
+            setTimeout(() => playReelsVideo(next), 150);
+        }
+
+        function scrollReelsPrevious() {
+            if (!isReelsActive) return;
+            const prev = Math.max(reelsCurrentIndex - 1, 0);
+            const containerHeight = document.getElementById("reels-feed").clientHeight;
+            document.getElementById("reels-feed").scrollTo({
+                top: prev * containerHeight,
+                behavior: "smooth"
+            });
+            setTimeout(() => playReelsVideo(prev), 150);
         }
 
         function renderExamsSection() {
@@ -1039,7 +1144,7 @@
                 let subName = item[keys[1]] || "مادة دراسية";
                 let iconClass = getSubjectIcon(subName);
                 subBox.innerHTML += `
-                    <div onclick="filterCoursesBy('subject', '${subId}', '${subName}')" class="p-4 rounded-xl bg-white border border-amber-200/60 text-center hover:border-blue-500/60 transition-all active:scale-95 cursor-pointer subject-box min-w-[115px] max-w-[115px] flex-shrink-0" style="scroll-snap-align: start;">
+                    <div onclick="filterCoursesBy('subject', '${subId}', '${subName}')" class="scroll-item p-4 rounded-xl bg-white border border-amber-200/60 text-center hover:border-blue-500/60 transition-all active:scale-95 cursor-pointer subject-box w-[115px]">
                         <div class="w-9 h-9 rounded-full bg-slate-950 flex items-center justify-center mx-auto mb-2 border border-slate-800/60"><i class="${iconClass} text-base"></i></div>
                         <h4 class="text-xs font-bold text-amber-950 subject-title truncate">${subName}</h4>
                     </div>
@@ -1058,7 +1163,7 @@
                 let avatarHtml = `<i class="fa-solid fa-user-tie text-3xl text-emerald-400"></i>`;
                 if(imgRaw) avatarHtml = `<img src="${convertDriveUrlToDirect(imgRaw)}" class="w-full h-full object-cover">`;
                 teaBox.innerHTML += `
-                    <div onclick="filterCoursesBy('teacher', '${id}', '${name}')" class="p-4 rounded-2xl bg-white border border-amber-200/60 flex flex-col items-center text-center hover:border-emerald-500/50 transition-all active:scale-95 cursor-pointer teacher-card min-w-[170px] max-w-[170px] min-h-[260px] flex-shrink-0" style="scroll-snap-align: start;">
+                    <div onclick="filterCoursesBy('teacher', '${id}', '${name}')" class="scroll-item p-4 rounded-2xl bg-white border border-amber-200/60 flex flex-col items-center text-center hover:border-emerald-500/50 transition-all active:scale-95 cursor-pointer teacher-card w-[170px] min-h-[260px]">
                         <div class="w-24 h-24 rounded-full bg-gradient-to-b from-slate-950 to-slate-800 border-2 border-emerald-500/40 shadow-xl mb-3 overflow-hidden flex-shrink-0 flex items-center justify-center">
                             ${avatarHtml}
                         </div>
@@ -1107,7 +1212,7 @@
                 let isActivated = activatedCourseIds.includes(cId);
 
                 container.innerHTML += `
-                    <div onclick="openCoursePlaylistPage('${cId}', '${cName}')" class="rounded-2xl bg-white border ${isActivated ? 'border-emerald-500/30' : 'border-amber-200/60'} hover:border-blue-500/40 cursor-pointer flex flex-col justify-between overflow-hidden min-w-[165px] max-w-[165px] h-[210px] flex-shrink-0 transition-all active:scale-95 course-main-box" style="scroll-snap-align: start;">
+                    <div onclick="openCoursePlaylistPage('${cId}', '${cName}')" class="scroll-item rounded-2xl bg-white border ${isActivated ? 'border-emerald-500/30' : 'border-amber-200/60'} hover:border-blue-500/40 cursor-pointer flex flex-col justify-between overflow-hidden w-[165px] h-[210px] transition-all active:scale-95 course-main-box">
                         <div class="w-full h-24 bg-gradient-to-br from-amber-50 to-white relative flex items-center justify-center border-b border-amber-200/40 course-top-card">
                             <div class="w-9 h-9 rounded-full ${isActivated ? 'bg-emerald-500/10 text-emerald-400' : 'bg-indigo-500/10 text-indigo-400'} flex items-center justify-center text-sm shadow-md">
                                 <i class="${isActivated ? 'fa-solid fa-lock-open' : 'fa-solid fa-lock'}"></i>
@@ -1135,12 +1240,7 @@
         function openCoursePlaylistPage(courseId, courseName) {
             switchTab('playlist-view');
             document.getElementById('playlist-course-title').innerText = courseName;
-            
-            document.getElementById('video-player-frame').innerHTML = `
-                <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
-                    <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
-                    <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
-                </div>`;
+            pauseCourseMainVideo();
             document.getElementById('current-playing-title').innerText = "";
 
             let courseLessons = db.lessons.filter(les => {
@@ -1169,7 +1269,7 @@
             let globalLessonIndex = 0; 
             let isCourseActivated = activatedCourseIds.includes(courseId);
 
-            Object.keys(chaptersMap).forEach((chapterName, idx) => {
+            Object.keys(chaptersMap).forEach((chapterName) => {
                 let lessonsHtml = "";
                 chaptersMap[chapterName].forEach(lesson => {
                     globalLessonIndex++;
@@ -1213,7 +1313,24 @@
             if(!isDarkMode) applyThemeModifications();
         }
 
-        // المشغل الفائق والمطور لملء حجم الشاشة بالكامل وبدون قيود المتصفح الخارجية
+        function pauseCourseMainVideo() {
+            if(mainYTPlayer && typeof mainYTPlayer.pauseVideo === 'function') {
+                mainYTPlayer.pauseVideo();
+            }
+            if (mainPlayerProgressTimer) clearInterval(mainPlayerProgressTimer);
+
+            const playerFrame = document.getElementById('video-player-frame');
+            playerFrame.innerHTML = `
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
+                    <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
+                    <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
+                </div>`;
+            document.getElementById('custom-player-overlay').classList.remove('active-controls');
+        }
+
+        /* =======================================================
+           تشغيل مشغل فيديو المادة مع واجهة تحكم مخصصة
+        ======================================================= */
         function playSelectedVideo(url, title) {
             const playerFrame = document.getElementById('video-player-frame');
             document.getElementById('current-playing-title').innerText = "يعرض الآن: " + title;
@@ -1249,6 +1366,192 @@
                     }
                 }
             }, 400);
+        }
+
+        function onMainPlayerReady(e) {
+            e.target.playVideo();
+            updateCustomControls();
+            if(mainPlayerProgressTimer) clearInterval(mainPlayerProgressTimer);
+            mainPlayerProgressTimer = setInterval(updateCustomControls, 500);
+        }
+
+        function onMainPlayerStateChange(e) {
+            const btn = document.getElementById('custom-play-btn');
+            if (e.data === YT.PlayerState.PLAYING) {
+                btn.innerHTML = `<i class="fa-solid fa-pause text-base"></i>`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-play text-base"></i>`;
+            }
+        }
+
+        function updateCustomControls() {
+            if (!mainYTPlayer || typeof mainYTPlayer.getCurrentTime !== 'function') return;
+            let current = mainYTPlayer.getCurrentTime() || 0;
+            let total = mainYTPlayer.getDuration() || 0;
+
+            document.getElementById('custom-time-current').innerText = formatTime(current);
+            document.getElementById('custom-time-total').innerText = formatTime(total);
+
+            if(total > 0) {
+                document.getElementById('custom-seek-bar').value = (current / total) * 100;
+            }
+        }
+
+        function updateDirectVideoProgress() {
+            const vid = document.getElementById('main-course-direct-video');
+            if(!vid) return;
+            document.getElementById('custom-time-current').innerText = formatTime(vid.currentTime);
+            document.getElementById('custom-time-total').innerText = formatTime(vid.duration || 0);
+            if(vid.duration) {
+                document.getElementById('custom-seek-bar').value = (vid.currentTime / vid.duration) * 100;
+            }
+        }
+
+        function formatTime(seconds) {
+            let min = Math.floor(seconds / 60);
+            let sec = Math.floor(seconds % 60);
+            return `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function toggleMainVideoPlay(e) {
+            if(e) e.stopPropagation();
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.getPlayerState === 'function') {
+                let state = mainYTPlayer.getPlayerState();
+                if(state === YT.PlayerState.PLAYING) mainYTPlayer.pauseVideo();
+                else mainYTPlayer.playVideo();
+            } else if(directVid) {
+                if(directVid.paused) directVid.play();
+                else directVid.pause();
+            }
+        }
+
+        function seekMainVideo(val, e) {
+            if(e) e.stopPropagation();
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.getCurrentTime === 'function') {
+                let current = mainYTPlayer.getCurrentTime();
+                mainYTPlayer.seekTo(current + val, true);
+            } else if(directVid) {
+                directVid.currentTime += val;
+            }
+        }
+
+        function onSeekBarChange(val) {
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.getDuration === 'function') {
+                let total = mainYTPlayer.getDuration();
+                mainYTPlayer.seekTo((val / 100) * total, true);
+            } else if(directVid && directVid.duration) {
+                directVid.currentTime = (val / 100) * directVid.duration;
+            }
+        }
+
+        function toggleMainMute(e) {
+            if(e) e.stopPropagation();
+            const btn = document.getElementById('custom-mute-btn');
+            const directVid = document.getElementById('main-course-direct-video');
+            if(mainYTPlayer && typeof mainYTPlayer.isMuted === 'function') {
+                if(mainYTPlayer.isMuted()) {
+                    mainYTPlayer.unMute();
+                    btn.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+                } else {
+                    mainYTPlayer.mute();
+                    btn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i>`;
+                }
+            } else if(directVid) {
+                directVid.muted = !directVid.muted;
+                btn.innerHTML = directVid.muted ? `<i class="fa-solid fa-volume-xmark"></i>` : `<i class="fa-solid fa-volume-high"></i>`;
+            }
+        }
+
+        function toggleSubtitles(e) {
+            if(e) e.stopPropagation();
+            const ccBtn = document.getElementById('custom-cc-btn');
+            
+            if (mainYTPlayer && typeof mainYTPlayer.loadModule === 'function') {
+                isSubtitlesOn = !isSubtitlesOn;
+                if (isSubtitlesOn) {
+                    mainYTPlayer.loadModule('captions');
+                    mainYTPlayer.setOption('captions', 'track', {'languageCode': 'ar'});
+                    ccBtn.classList.add('bg-amber-500', 'text-black');
+                    ccBtn.classList.remove('bg-black/60');
+                } else {
+                    mainYTPlayer.unloadModule('captions');
+                    ccBtn.classList.remove('bg-amber-500', 'text-black');
+                    ccBtn.classList.add('bg-black/60');
+                }
+            } else {
+                alert('الترجمة غير متوفرة لهذا الفيديو بشكل تلقائي');
+            }
+        }
+
+        function changeVideoQuality(quality, e) {
+            if(e) e.stopPropagation();
+            if (mainYTPlayer && typeof mainYTPlayer.setPlaybackQuality === 'function') {
+                mainYTPlayer.setPlaybackQuality(quality);
+            }
+        }
+
+        function toggleOverlayControls() {
+            // المشغل المستخدم هنا هو مشغل index(6) الأصلي، ولا يحتاج طبقة تحكم فوق الفيديو.
+        }
+
+        /* 🟢 دالة تدوير وقلب الشاشة بالعرض لملء الشاشة بالكامل */
+        function toggleMainVideoRotate(event) {
+            if(event) event.stopPropagation();
+            isMainVideoRotated = !isMainVideoRotated;
+            const container = document.getElementById('video-container-box');
+            
+            if (isMainVideoRotated) {
+                container.classList.add('rotated-landscape');
+                if (!document.fullscreenElement && container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => {});
+                }
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(() => {});
+                }
+            } else {
+                container.classList.remove('rotated-landscape');
+                if (document.fullscreenElement && document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+        }
+
+        function requestVideoFullscreen(event) {
+            if(event) event.stopPropagation();
+
+            const wrapper = document.getElementById('video-container-box');
+            let videoEl = document.getElementById('main-course-direct-video');
+
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen().then(() => {
+                        if (screen.orientation && screen.orientation.lock) {
+                            screen.orientation.lock('landscape').catch(() => {});
+                        }
+                    }).catch(() => {});
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.mozRequestFullScreen) {
+                    wrapper.mozRequestFullScreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                } else if (videoEl && videoEl.webkitEnterFullscreen) {
+                    videoEl.webkitEnterFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
         }
 
         function filterCoursesBy(type, id, value) {
@@ -1329,50 +1632,37 @@
             document.getElementById('profile-logged-out').classList.remove('hidden');
         }
 
-        window.addEventListener('DOMContentLoaded', () => { syncAppDatabase(); });
+        window.addEventListener('DOMContentLoaded', syncAppDatabase);
+
+        function onYouTubeIframeAPIReady() {
+            initYouTubeIframeForReels();
+        }
 
         function switchTab(tabName) {
+            closeStandaloneReels();
             document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
-            const reelsPage = document.getElementById('tab-reels');
-            const navWrapper = document.getElementById('app-nav-wrapper');
-            if (reelsPage) reelsPage.classList.add('hidden');
+            
             const navHome = document.getElementById('nav-home');
             const navCourses = document.getElementById('nav-courses');
-            const navReels = document.getElementById('nav-reels');
             const navProfile = document.getElementById('nav-profile');
+            
             const navHomeText = document.getElementById('nav-home-text');
             const navHomeGlow = document.getElementById('center-nav-glow');
 
-            [navCourses, navReels, navProfile].forEach(btn => {
-                if (!btn) return;
-                btn.classList.remove('text-amber-700', 'dark:text-blue-500', 'text-blue-600', 'font-bold');
+            [navCourses, navProfile].forEach(btn => {
+                btn.classList.remove('text-amber-700', 'dark:text-blue-500', 'font-bold');
                 btn.classList.add('text-slate-400');
-                const span = btn.querySelector('span');
-                if (span) span.classList.remove('font-bold');
+                btn.querySelector('span').classList.remove('font-bold');
             });
-            if (navReels) {
-                navReels.classList.remove('bg-blue-600/10', 'rounded-xl');
-            }
-            
-            navHome.className = "w-14 h-14 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xl shadow-md relative border-2 border-[#111827] transition-all transform hover:scale-105 active:scale-95";
-            navHomeText.className = "text-[11px] font-bold text-slate-400 mt-1";
-            navHomeGlow.className = "absolute inset-0 bg-transparent blur-xl rounded-full";
 
             if(tabName !== 'playlist-view') {
-                document.getElementById('video-player-frame').innerHTML = `
-                <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
-                    <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
-                    <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
-                </div>`;
+                pauseCourseMainVideo();
                 document.getElementById('current-playing-title').innerText = "";
             }
 
-            if(tabName === 'reels') {
-                openStandaloneReels();
-                return;
-            } else {
-                if (navWrapper) navWrapper.style.display = '';
-            }
+            navHome.className = "w-11 h-11 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-base shadow-md relative border-2 border-[#111827] transition-all";
+            navHomeText.className = "text-[9px] font-bold text-slate-400 mt-0.5";
+            navHomeGlow.className = "absolute inset-0 bg-transparent blur-xl rounded-full";
 
             if(tabName === 'home') {
                 document.getElementById('tab-home').classList.remove('hidden');
@@ -1397,12 +1687,12 @@
             const navHomeText = document.getElementById('nav-home-text');
             const navHomeGlow = document.getElementById('center-nav-glow');
             if(isDarkMode) {
-                navHome.className = "w-14 h-14 rounded-full bg-gradient-to-b from-blue-500 to-indigo-600 text-white flex items-center justify-center text-xl shadow-lg shadow-blue-500/30 relative border-2 border-[#111827] transition-all transform hover:scale-105 active:scale-95";
-                navHomeText.className = "text-[11px] font-black text-blue-400 mt-1";
+                navHome.className = "w-11 h-11 rounded-full bg-gradient-to-b from-blue-500 to-indigo-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 relative border-2 border-[#111827] transition-all";
+                navHomeText.className = "text-[9px] font-black text-blue-400 mt-0.5";
                 navHomeGlow.className = "absolute inset-0 bg-blue-500/20 blur-xl rounded-full scale-125";
             } else {
-                navHome.className = "w-14 h-14 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-xl shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all transform hover:scale-105 active:scale-95";
-                navHomeText.className = "text-[11px] font-black text-amber-700 mt-1";
+                navHome.className = "w-11 h-11 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-base shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all";
+                navHomeText.className = "text-[9px] font-black text-amber-700 mt-0.5";
                 navHomeGlow.className = "absolute inset-0 bg-amber-500/20 blur-xl rounded-full scale-125";
             }
         }
@@ -1428,12 +1718,13 @@
             if(!isDarkMode) {
                 themeIcon.className = "fa-solid fa-moon";
                 themeToggleBtn.className = "w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-sm";
-                pContainer.className = "w-full h-screen md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl relative flex flex-col overflow-hidden border border-amber-100/80";
-                appHeader.className = "bg-[#f5f2eb] border-b border-amber-200/60 px-5 py-5 flex items-center justify-between z-30";
-                appNav.className = "w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-3 items-center relative shadow-xl shadow-amber-900/10";
+                pContainer.className = "w-full h-full md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#fcfbf7] shadow-2xl transition-colors duration-300";
+                appHeader.className = "bg-[#f5f2eb] border-b border-amber-200/60 px-5 py-4 flex items-center justify-between z-30 flex-shrink-0";
+                appNav.className = "w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-amber-900/10";
                 document.getElementById('logo-text').className = "text-base font-black text-amber-900 tracking-wide";
                 document.getElementById('logo-icon-bg').className = "w-9 h-9 rounded-xl bg-amber-100 border border-amber-200/60 flex items-center justify-center text-base shadow-sm";
                 document.getElementById('nav-home').classList.replace('border-[#111827]', 'border-[#fcfbf7]');
+                document.getElementById('nav-reels').classList.replace('border-[#111827]', 'border-[#fcfbf7]');
                 document.getElementById('banner-badge').className = "text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full w-max mb-1.5 shadow-sm tracking-wide";
                 
                 document.getElementById('playlist-header-nav').className = "flex items-center justify-between border-b border-amber-200/60 pb-3";
@@ -1461,7 +1752,7 @@
                 document.querySelectorAll('.action-play-badge').forEach(b => b.className = "text-[9px] text-amber-700 font-bold bg-amber-500/5 px-2.5 py-1 rounded-md border border-amber-500/20 flex items-center gap-1 action-play-badge");
 
                 document.querySelectorAll('.subject-title, .teacher-name, .login-main-text, .profile-student-title, .course-item-title-text').forEach(t => {
-                    t.classList.remove('text-white');
+                    t.classList.remove('text-amber-950');
                     t.classList.add('text-amber-950');
                 });
                 document.getElementById('activation-panel').className = "bg-white border border-amber-200/60 p-4 rounded-2xl space-y-3";
@@ -1476,12 +1767,13 @@
             } else {
                 themeIcon.className = "fa-solid fa-sun";
                 themeToggleBtn.className = "w-8 h-8 rounded-full bg-slate-800 text-amber-400 flex items-center justify-center text-sm";
-                pContainer.className = "w-full h-screen md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#0b0f19] shadow-2xl relative flex flex-col overflow-hidden border border-slate-900/60";
-                appHeader.className = "bg-[#111827] border-b border-slate-800/60 px-5 py-5 flex items-center justify-between z-30";
-                appNav.className = "w-full h-full bg-[#111827]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl grid grid-cols-3 items-center relative shadow-xl shadow-black/40";
+                pContainer.className = "w-full h-full md:h-[820px] md:w-[390px] md:rounded-3xl bg-[#0b0f19] shadow-2xl transition-colors duration-300";
+                appHeader.className = "bg-[#111827] border-b border-slate-800/60 px-5 py-4 flex items-center justify-between z-30 flex-shrink-0";
+                appNav.className = "w-full h-full bg-[#111827]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-black/40";
                 document.getElementById('logo-text').className = "text-base font-black text-white tracking-wide";
                 document.getElementById('logo-icon-bg').className = "w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-base shadow-sm";
                 document.getElementById('nav-home').classList.replace('border-[#fcfbf7]', 'border-[#111827]');
+                document.getElementById('nav-reels').classList.replace('border-[#fcfbf7]', 'border-[#111827]');
                 document.getElementById('banner-badge').className = "text-[10px] bg-blue-500 text-white font-bold px-2 py-0.5 rounded-full w-max mb-1.5 shadow-sm tracking-wide";
                 
                 document.getElementById('playlist-header-nav').className = "flex items-center justify-between border-b border-slate-800/40 pb-3";
@@ -1523,428 +1815,6 @@
                 if(pInp) pInp.className = "w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-blue-500";
             }
         }
-    
-/* ===== نظام الريلز المدمج ===== */
-const SHEET_ID = "1Vt12P6GyuOx0dEEtmFM6fxywOC5zJ6z0baETTmgeD0g";
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-
-let videos = [];
-let players = {}; 
-let currentIndex = 0;
-let userInteracted = false;
-
-function handleGestureActivation() {
-    if (!userInteracted) {
-        userInteracted = true;
-        const overlay = document.getElementById("unmuteOverlay");
-        if (overlay) overlay.style.display = "none";
-        unmuteCurrentVideo(currentIndex);
-    }
-}
-
-document.addEventListener("touchstart", handleGestureActivation, { passive: true, capture: true });
-document.addEventListener("touchmove", handleGestureActivation, { passive: true, capture: true });
-document.addEventListener("wheel", handleGestureActivation, { passive: true, capture: true });
-document.addEventListener("click", handleGestureActivation, { passive: true, capture: true });
-
-
-// ====== نظام الريلز المستخرج من index_fullscreen_scroll_fixed.html ======
-const REELS_SHEET_ID = "1Vt12P6GyuOx0dEEtmFM6fxywOC5zJ6z0baETTmgeD0g";
-const REELS_SHEET_URL = `https://docs.google.com/spreadsheets/d/${REELS_SHEET_ID}/gviz/tq?tqx=out:json`;
-let reelsVideos = [];
-let reelsPlayers = {};
-let reelsCurrentIndex = 0;
-let reelsUserInteracted = false;
-let reelsLoaded = false;
-let isReelsActive = false;
-
-function openStandaloneReels() {
-            reelsUserInteracted = true;
-            isReelsActive = true;
-            const page = document.getElementById('reels-standalone-page');
-            const splash = document.getElementById('reels-splash-screen');
-            
-            splash.classList.remove('hidden-splash');
-            page.classList.add('active');
-            pauseCourseMainVideo(); 
-
-            setTimeout(() => {
-                splash.classList.add('hidden-splash');
-                if (reelsLoaded && reelsVideos.length > 0) {
-                    playReelsVideo(reelsCurrentIndex);
-                }
-            }, 300);
-        }
-
-function closeStandaloneReels() {
-            isReelsActive = false;
-            document.getElementById('reels-standalone-page').classList.remove('active');
-            pauseAllReelsVideos();
-        }
-
-async function preloadReelsInBackground() {
-            try {
-                const response = await fetch(REELS_SHEET_URL);
-                const text = await response.text();
-                const json = JSON.parse(text.substr(47).slice(0, -2));
-                const rows = json.table.rows;
-
-                const parsedVideos = rows.map(row => {
-                    const rawSource = row.c[0] ? String(row.c[0].v).trim() : "";
-                    let type = "youtube";
-                    let source = rawSource;
-                    let isLandscape = row.c[4] ? String(row.c[4].v).toLowerCase() === 'true' || String(row.c[4].v) === '16:9' : false;
-
-                    if (isTikTokUrl(rawSource)) {
-                        type = "tiktok";
-                        source = extractTikTokId(rawSource) || rawSource;
-                    } else if (isDirectVideoUrl(rawSource)) {
-                        type = "direct";
-                    } else {
-                        source = extractYouTubeId(rawSource);
-                    }
-
-                    return {
-                        source: source,
-                        type: type,
-                        isLandscape: isLandscape,
-                        subject: row.c[1] ? row.c[1].v : "درس تعليمي",
-                        title: row.c[2] ? row.c[2].v : "",
-                        description: row.c[3] ? row.c[3].v : ""
-                    };
-                }).filter(v => v.source !== "" && v.source.toLowerCase() !== "id");
-
-                if(parsedVideos.length > 0) {
-                    reelsVideos = shuffleArray(parsedVideos);
-                    buildReelsFeed();
-                    reelsLoaded = true;
-                }
-            } catch (error) {
-                console.error("خطأ في جلب البيانات:", error);
-            }
-        }
-
-function buildReelsFeed() {
-            const feed = document.getElementById("reels-feed");
-            feed.innerHTML = "";
-            reelsVideos.forEach((video, index) => {
-                const card = document.createElement("section");
-                card.className = "reels-video-card";
-                card.id = `reels-card-${index}`;
-
-                let mediaHTML = "";
-                if (video.type === "direct") {
-                    mediaHTML = `
-                        <video id="reels-direct-video-${index}" playsinline loop preload="auto">
-                            <source src="${video.source}" type="video/mp4">
-                        </video>
-                    `;
-                } else if (video.type === "tiktok") {
-                    mediaHTML = `
-                        <iframe src="https://www.tiktok.com/embed/v2/${video.source}" 
-                                allow="autoplay; encrypted-media" 
-                                allowfullscreen 
-                                style="width: 100%; height: 100%; border: none;"></iframe>
-                    `;
-                } else {
-                    mediaHTML = `<div id="reels-player-${index}"></div>`;
-                }
-
-                const rotateClass = video.isLandscape ? 'rotated' : '';
-
-                card.innerHTML = `
-                    <div class="reels-media-container ${rotateClass}" id="reels-media-container-${index}">
-                        ${mediaHTML}
-                    </div>
-
-                    <div class="reels-tap-area reels-tap-left" data-side="left" data-index="${index}"></div>
-                    <div class="reels-tap-area reels-tap-center" onclick="toggleReelsPlayPause(${index})" data-index="${index}"></div>
-                    <div class="reels-tap-area reels-tap-right" data-side="right" data-index="${index}"></div>
-
-                    <div class="reels-seek-feedback reels-feedback-left" id="reels-feedback-left-${index}">
-                        ↶ <span>-5 ثواني</span>
-                    </div>
-                    <div class="reels-play-feedback reels-feedback-center" id="reels-feedback-center-${index}">▶</div>
-                    <div class="reels-seek-feedback reels-feedback-right" id="reels-feedback-right-${index}">
-                        ↷ <span>+5 ثواني</span>
-                    </div>
-
-                    <div class="reels-gradient"></div>
-
-                    <div class="reels-actions">
-                        <button class="reels-action sound-btn" id="reels-sound-btn-${index}" onclick="toggleReelsSound(${index}, this)">🔊</button>
-                    </div>
-
-                    <div class="reels-info">
-                        <span class="reels-subject">${video.subject}</span>
-                        <div class="reels-title">${video.title}</div>
-                        <div class="reels-description">${video.description}</div>
-                    </div>
-                `;
-                feed.appendChild(card);
-            });
-
-            initReelsObserversAndControls();
-            initYouTubeIframeForReels();
-        }
-
-function initYouTubeIframeForReels() {
-            if (typeof YT !== 'undefined' && YT.Player) {
-                reelsVideos.forEach((video, index) => {
-                    if (video.type === "youtube" && !reelsPlayers[index]) {
-                        reelsPlayers[index] = new YT.Player(`reels-player-${index}`, {
-                            videoId: video.source,
-                            playerVars: {
-                                autoplay: 0, controls: 0, rel: 0, playsinline: 1,
-                                mute: 0, iv_load_policy: 3, cc_load_policy: 0,
-                                modestbranding: 1, enablejsapi: 1,
-                                origin: window.location.origin || '*'
-                            },
-                            events: {
-                                onReady: (e) => { e.target.pauseVideo(); },
-                                onStateChange: (e) => {
-                                    if (e.data === YT.PlayerState.ENDED) scrollReelsNext();
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-        }
-
-function triggerReelsTriplePreload(currentIndex) {
-            const indicesToPreload = [currentIndex, currentIndex + 1, currentIndex - 1];
-            indicesToPreload.forEach(idx => {
-                if (idx >= 0 && idx < reelsVideos.length) {
-                    const video = reelsVideos[idx];
-                    if (video.type === "youtube" && reelsPlayers[idx] && typeof reelsPlayers[idx].cueVideoById === "function") {
-                        if (idx !== currentIndex) {
-                            reelsPlayers[idx].cueVideoById(video.source);
-                        }
-                    } else if (video.type === "direct") {
-                        const vid = document.getElementById(`reels-direct-video-${idx}`);
-                        if (vid && idx !== currentIndex) {
-                            vid.load();
-                        }
-                    }
-                }
-            });
-        }
-
-function playReelsVideo(index) {
-            if (!isReelsActive) return;
-            reelsCurrentIndex = index;
-
-            reelsVideos.forEach((v, i) => {
-                if (i !== index) {
-                    if (v.type === "direct") {
-                        const vid = document.getElementById(`reels-direct-video-${i}`);
-                        if (vid) { vid.pause(); }
-                    } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
-                        reelsPlayers[i].pauseVideo();
-                    }
-                }
-            });
-
-            const currentVideo = reelsVideos[index];
-            if (!currentVideo) return;
-
-            if (currentVideo.type === "direct") {
-                const vid = document.getElementById(`reels-direct-video-${index}`);
-                if (vid) {
-                    vid.muted = false;
-                    let playPromise = vid.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(() => {
-                            vid.muted = true;
-                            vid.play();
-                        });
-                    }
-                }
-            } else if (currentVideo.type === "youtube") {
-                if (reelsPlayers[index] && typeof reelsPlayers[index].playVideo === "function") {
-                    reelsPlayers[index].unMute();
-                    reelsPlayers[index].playVideo();
-                }
-            }
-
-            const btn = document.getElementById(`reels-sound-btn-${index}`);
-            if (btn) btn.innerHTML = "🔊";
-
-            triggerReelsTriplePreload(index);
-        }
-
-function pauseAllReelsVideos() {
-            reelsVideos.forEach((v, i) => {
-                if (v.type === "direct") {
-                    const vid = document.getElementById(`reels-direct-video-${i}`);
-                    if (vid) vid.pause();
-                } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
-                    reelsPlayers[i].pauseVideo();
-                }
-            });
-        }
-
-function toggleReelsPlayPause(index) {
-            if (!isReelsActive) return;
-            const currentVideo = reelsVideos[index];
-            const feedback = document.getElementById(`reels-feedback-center-${index}`);
-
-            if (currentVideo.type === "direct") {
-                const vid = document.getElementById(`reels-direct-video-${index}`);
-                if (vid) {
-                    if (vid.paused) {
-                        vid.play();
-                        if (feedback) { feedback.innerHTML = "▶"; showReelsFeedbackElement(feedback); }
-                    } else {
-                        vid.pause();
-                        if (feedback) { feedback.innerHTML = "⏸"; showReelsFeedbackElement(feedback); }
-                    }
-                }
-            } else if (currentVideo.type === "youtube") {
-                const player = reelsPlayers[index];
-                if (!player) return;
-                const state = player.getPlayerState();
-
-                if (state === YT.PlayerState.PLAYING) {
-                    player.pauseVideo();
-                    if (feedback) { feedback.innerHTML = "⏸"; showReelsFeedbackElement(feedback); }
-                } else {
-                    player.playVideo();
-                    if (feedback) { feedback.innerHTML = "▶"; showReelsFeedbackElement(feedback); }
-                }
-            }
-        }
-
-function toggleReelsRotate(index) {
-            const container = document.getElementById(`reels-media-container-${index}`);
-            if (container) container.classList.toggle("rotated");
-        }
-
-function toggleReelsSound(index, button) {
-            const currentVideo = reelsVideos[index];
-
-            if (currentVideo.type === "direct") {
-                const vid = document.getElementById(`reels-direct-video-${index}`);
-                if (vid) {
-                    vid.muted = !vid.muted;
-                    button.innerHTML = vid.muted ? "🔇" : "🔊";
-                }
-            } else if (currentVideo.type === "youtube") {
-                const player = reelsPlayers[index];
-                if (!player) return;
-
-                if (player.isMuted()) {
-                    player.unMute();
-                    button.innerHTML = "🔊";
-                } else {
-                    player.mute();
-                    button.innerHTML = "🔇";
-                }
-            }
-        }
-
-function seekReelsForward(index) {
-            if (!isReelsActive) return;
-            const currentVideo = reelsVideos[index];
-            if (currentVideo.type === "direct") {
-                const vid = document.getElementById(`reels-direct-video-${index}`);
-                if (vid) vid.currentTime = Math.min(vid.currentTime + 5, vid.duration);
-            } else if (currentVideo.type === "youtube") {
-                const player = reelsPlayers[index];
-                if (player && typeof player.getCurrentTime === "function") {
-                    player.seekTo(Math.min(player.getCurrentTime() + 5, player.getDuration()), true);
-                }
-            }
-            showReelsSeekFeedback(index, "right");
-        }
-
-function seekReelsBackward(index) {
-            if (!isReelsActive) return;
-            const currentVideo = reelsVideos[index];
-            if (currentVideo.type === "direct") {
-                const vid = document.getElementById(`reels-direct-video-${index}`);
-                if (vid) vid.currentTime = Math.max(vid.currentTime - 5, 0);
-            } else if (currentVideo.type === "youtube") {
-                const player = reelsPlayers[index];
-                if (player && typeof player.getCurrentTime === "function") {
-                    player.seekTo(Math.max(player.getCurrentTime() - 5, 0), true);
-                }
-            }
-            showReelsSeekFeedback(index, "left");
-        }
-
-function showReelsFeedbackElement(element) {
-            element.classList.remove("show");
-            void element.offsetWidth;
-            element.classList.add("show");
-            setTimeout(() => element.classList.remove("show"), 500);
-        }
-
-function showReelsSeekFeedback(index, side) {
-            const id = side === "right" ? `reels-feedback-right-${index}` : `reels-feedback-left-${index}`;
-            const element = document.getElementById(id);
-            if (element) showReelsFeedbackElement(element);
-        }
-
-function initReelsObserversAndControls() {
-            const cards = document.querySelectorAll(".reels-video-card");
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-                        const index = [...cards].indexOf(entry.target);
-                        if (index !== reelsCurrentIndex && isReelsActive) {
-                            playReelsVideo(index);
-                        }
-                    }
-                });
-            }, { threshold: 0.5 });
-
-            cards.forEach(card => observer.observe(card));
-
-            const tapTracker = new Map();
-
-            document.querySelectorAll(".reels-tap-left, .reels-tap-right").forEach(area => {
-                area.addEventListener("click", (e) => {
-                    const now = Date.now();
-                    const lastTime = tapTracker.get(area) || 0;
-                    const index = parseInt(area.dataset.index);
-                    const side = area.dataset.side;
-
-                    if (now - lastTime < 300) {
-                        if (side === "right") seekReelsForward(index);
-                        else seekReelsBackward(index);
-                        tapTracker.set(area, 0);
-                    } else {
-                        tapTracker.set(area, now);
-                    }
-                });
-            });
-        }
-
-function scrollReelsNext() {
-            if (!isReelsActive) return;
-            const next = Math.min(reelsCurrentIndex + 1, reelsVideos.length - 1);
-            const containerHeight = document.getElementById("reels-feed").clientHeight;
-            document.getElementById("reels-feed").scrollTo({
-                top: next * containerHeight,
-                behavior: "smooth"
-            });
-            setTimeout(() => playReelsVideo(next), 150);
-        }
-
-function scrollReelsPrevious() {
-            if (!isReelsActive) return;
-            const prev = Math.max(reelsCurrentIndex - 1, 0);
-            const containerHeight = document.getElementById("reels-feed").clientHeight;
-            document.getElementById("reels-feed").scrollTo({
-                top: prev * containerHeight,
-                behavior: "smooth"
-            });
-            setTimeout(() => playReelsVideo(prev), 150);
-        }
-
-window.addEventListener('DOMContentLoaded', () => { preloadReelsInBackground(); });
-</script>
+    </script>
 </body>
 </html>
