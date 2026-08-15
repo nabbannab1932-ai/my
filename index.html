@@ -257,10 +257,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.1s ease;
+            transition: transform 0.1s ease, background 0.2s ease;
         }
 
         .reels-action-btn:active { transform: scale(0.85); }
+        .reels-action-btn:hover { background: rgba(37, 99, 235, 0.6); }
 
         .reels-rotate-btn {
             position: absolute;
@@ -686,6 +687,36 @@
             }
         }
 
+        function initYouTubePlayer(index, videoId) {
+            if (reelsPlayers[index]) return;
+            if (!window.YT || !window.YT.Player) return;
+
+            reelsPlayers[index] = new YT.Player(`reel-player-${index}`, {
+                videoId: videoId,
+                playerVars: {
+                    autoplay: 1,
+                    controls: 0,
+                    rel: 0,
+                    playsinline: 1,
+                    mute: 1,
+                    iv_load_policy: 3,
+                    enablejsapi: 1,
+                    origin: window.location.origin || '*'
+                },
+                events: {
+                    onReady: (e) => {
+                        e.target.mute();
+                        if (index === currentReelIndex) {
+                            e.target.playVideo();
+                        }
+                    },
+                    onStateChange: (e) => {
+                        if (e.data === YT.PlayerState.ENDED) scrollNextReel();
+                    }
+                }
+            });
+        }
+
         function buildReelsFeed() {
             const feed = document.getElementById("reels-feed");
             feed.innerHTML = "";
@@ -735,8 +766,11 @@
 
                     <div class="reels-gradient"></div>
 
+                    <!-- أزرار التحكم بالصوت والتنقل للأعلى والأسفل -->
                     <div class="reels-actions">
+                        <button class="reels-action-btn" title="الفيديو السابق" onclick="scrollPrevReel()"><i class="fa-solid fa-chevron-up"></i></button>
                         <button class="reels-action-btn sound-btn" id="reel-sound-btn-${index}" onclick="toggleReelsSound(${index}, this)">🔇</button>
+                        <button class="reels-action-btn" title="الفيديو التالي" onclick="scrollNextReel()"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
 
                     <div class="reels-info">
@@ -746,6 +780,11 @@
                     </div>
                 `;
                 feed.appendChild(card);
+
+                // تهيئة مشغل YouTube فوراً بعد إدراج العنصر
+                if (video.type === "youtube") {
+                    initYouTubePlayer(index, video.source);
+                }
             });
 
             initReelsObserversAndControls();
@@ -755,27 +794,7 @@
         function onYouTubeIframeAPIReady() {
             reelsVideos.forEach((video, index) => {
                 if (video.type === "youtube") {
-                    reelsPlayers[index] = new YT.Player(`reel-player-${index}`, {
-                        videoId: video.source,
-                        playerVars: {
-                            autoplay: 1,
-                            controls: 0,
-                            rel: 0,
-                            playsinline: 1,
-                            mute: 1,
-                            iv_load_policy: 3,
-                            enablejsapi: 1,
-                            origin: window.location.origin || '*'
-                        },
-                        events: {
-                            onReady: (e) => {
-                                e.target.mute();
-                            },
-                            onStateChange: (e) => {
-                                if (e.data === YT.PlayerState.ENDED) scrollNextReel();
-                            }
-                        }
-                    });
+                    initYouTubePlayer(index, video.source);
                 }
             });
         }
@@ -813,6 +832,8 @@
                     if (reelsUserInteracted) reelsPlayers[index].unMute();
                     else reelsPlayers[index].mute();
                     reelsPlayers[index].playVideo();
+                } else {
+                    initYouTubePlayer(index, currentVideo.source);
                 }
             }
 
