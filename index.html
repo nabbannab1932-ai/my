@@ -509,6 +509,142 @@
 }
 .reels-back-btn{position:absolute;top:calc(12px + var(--safe-top));right:12px;z-index:300;background:rgba(0,0,0,.65);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:7px 13px;font-size:12px;font-weight:700;backdrop-filter:blur(10px);}
 
+
+
+/* ===== CSS الريلز المستخرج ===== */
+#reels-standalone-page {
+            position: fixed; inset: 0; width: 100vw; height: 100vh;
+            z-index: 9999; background: #000; display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        #reels-standalone-page.active { opacity: 1; pointer-events: auto; }
+
+        #reels-splash-screen {
+            position: absolute; inset: 0; z-index: 300; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.2s ease, visibility 0.2s;
+        }
+        #reels-splash-screen.hidden-splash { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .reels-glass-header {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 200;
+            padding-top: calc(12px + var(--safe-top));
+            padding-bottom: 12px; padding-left: 16px; padding-right: 16px;
+            background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .reels-glass-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff; padding: 8px 16px; border-radius: 9999px;
+            font-size: 12px; font-weight: 700; backdrop-filter: blur(8px);
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
+        }
+
+        #reels-feed {
+            width: 100%; height: 100%; overflow-y: scroll;
+            scroll-snap-type: y mandatory; scrollbar-width: none;
+            touch-action: pan-y; overscroll-behavior-y: contain; background: #000;
+        }
+        #reels-feed::-webkit-scrollbar { display: none; }
+
+        .reels-video-card {
+            position: relative; width: 100%; height: 100vh;
+            scroll-snap-align: start; scroll-snap-stop: always;
+            background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+
+        .reels-media-container {
+            position: absolute; inset: 0; display: flex; justify-content: center; align-items: center;
+            background: #000; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reels-media-container iframe, 
+        .reels-media-container video {
+            position: absolute; width: 100%; height: 100%; border: none; object-fit: contain !important;
+        }
+
+        .reels-media-container.rotated { transform: rotate(90deg) scale(1.4); }
+
+        .reels-tap-area {
+            position: absolute; top: 0; bottom: 0; z-index: 15;
+            background: transparent; touch-action: pan-y;
+        }
+        .reels-tap-left { left: 0; width: 35%; }
+        .reels-tap-center { left: 35%; width: 30%; }
+        .reels-tap-right { right: 0; width: 35%; }
+
+        .reels-seek-feedback, .reels-play-feedback {
+            position: absolute; top: 50%; transform: translateY(-50%) scale(0.8);
+            width: 80px; height: 80px; border-radius: 50%;
+            background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px);
+            color: white; display: flex; align-items: center; justify-content: center;
+            flex-direction: column; font-size: 26px; z-index: 50; pointer-events: none; opacity: 0;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .reels-seek-feedback span { font-size: 11px; margin-top: 2px; }
+        .reels-feedback-left { left: 15%; }
+        .reels-feedback-right { right: 15%; }
+        .reels-feedback-center { left: 50%; transform: translate(-50%, -50%) scale(0.8); }
+
+        .reels-seek-feedback.show, .reels-play-feedback.show {
+            opacity: 1; transform: translateY(-50%) scale(1.1);
+        }
+        .reels-feedback-center.show { transform: translate(-50%, -50%) scale(1.1); }
+
+        .reels-gradient {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 60%, rgba(0,0,0,0.85) 100%);
+            z-index: 10; pointer-events: none;
+        }
+
+        .reels-info {
+            position: absolute; bottom: calc(24px + var(--safe-bottom));
+            right: 16px; left: 75px; color: white; z-index: 20;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
+
+        .reels-subject {
+            display: inline-block; background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px); padding: 3px 8px; border-radius: 8px;
+            font-size: 11px; font-weight: bold; margin-bottom: 6px;
+        }
+
+        .reels-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .reels-description { font-size: 12px; opacity: 0.85; line-height: 1.3; }
+
+        .reels-actions {
+            position: absolute; left: 12px; bottom: calc(24px + var(--safe-bottom));
+            z-index: 40; display: flex; flex-direction: column; gap: 12px;
+        }
+
+        .reels-action {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.45); color: white; font-size: 18px;
+            cursor: pointer; backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .reels-scroll-controls {
+            position: absolute; right: 12px; top: 50%;
+            transform: translateY(-50%); z-index: 100;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .reels-scroll-btn {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(8px); font-size: 14px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    
 </style>
 </head>
 <body class="gradient-bg flex items-center justify-center min-h-screen p-0 md:p-4 transition-colors duration-300" id="body-layout">
@@ -679,54 +815,39 @@
 
         </div>
 
-        <!-- صفحة الريلز المدمجة داخل المنصة -->
-        <div id="tab-reels" class="hidden">
-            <div class="reels-screen">
-                <button class="reels-back-btn" onclick="switchTab('home')">
-                    <i class="fa-solid fa-arrow-right ml-1"></i> العودة للمنصة
-                </button>
-
-
-<div class="app-container" id="appContainer">
-
-    <div class="splash-screen" id="splashScreen">
-        <div class="splash-logo-container">
-            <div class="splash-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 3L1 9L12 15L21 10.09V17H23V9M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z"/>
-                </svg>
+    <!-- واجهة الريلز المستقلة -->
+    <div id="reels-standalone-page">
+        <div id="reels-splash-screen">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-400 to-blue-600 flex items-center justify-center shadow-2xl mb-3 animate-bounce">
+                <i class="fa-solid fa-play text-2xl text-white"></i>
             </div>
-            <h1 class="splash-title">منصة التميز التعليمية</h1>
-            <span class="splash-subtitle">تجربة تعلم التفاعلية عبر الريلز</span>
+            <span class="text-white font-bold text-xs tracking-wider">جاري فتح الريلز...</span>
+            <i class="fa-solid fa-circle-notch animate-spin text-sky-400 text-sm mt-3"></i>
         </div>
 
-        <div class="splash-loader">
-            <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progressFill"></div>
+        <header class="reels-glass-header">
+            <button class="reels-glass-btn" onclick="closeStandaloneReels()">
+                <i class="fa-solid fa-arrow-right"></i> عودة للمنصة
+            </button>
+            <div class="flex items-center gap-2">
+                <span class="text-white/80 font-bold text-xs"><i class="fa-solid fa-bolt text-amber-400 ml-1"></i> ريلز تعليمي</span>
             </div>
-            <span class="splash-status" id="splashStatus">جاري تحضير المحتوى...</span>
+            <button class="reels-glass-btn" onclick="toggleReelsRotate(reelsCurrentIndex)">
+                <i class="fa-solid fa-rotate"></i> تدوير
+            </button>
+        </header>
+
+        <div class="reels-scroll-controls">
+            <button class="reels-scroll-btn" onclick="scrollReelsPrevious()" title="الفيديو السابق">
+                <i class="fa-solid fa-chevron-up"></i>
+            </button>
+            <button class="reels-scroll-btn" onclick="scrollReelsNext()" title="الفيديو التالي">
+                <i class="fa-solid fa-chevron-down"></i>
+            </button>
         </div>
+
+        <div id="reels-feed"></div>
     </div>
-
-    <header class="mini-header">
-        <div class="header-brand">
-            <span>ريلز منصة التميز التعليمية</span>
-        </div>
-    </header>
-
-    <div class="unmute-overlay" id="unmuteOverlay" onclick="enableAudioAndHide()">
-        🔊 انقر للتشغيل بالصوت
-    </div>
-
-    <footer class="mini-footer"></footer>
-
-    <div id="feed"></div>
-
-</div>
-
-
-            </div>
-        </div>
 
         <div class="absolute bottom-4 inset-x-4 h-20 z-40" id="app-nav-wrapper">
             <nav class="w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-amber-900/10 transition-colors duration-300" id="app-nav">
@@ -1247,15 +1368,7 @@
             }
 
             if(tabName === 'reels') {
-                if (reelsPage) reelsPage.classList.remove('hidden');
-                if (navWrapper) navWrapper.style.display = 'none';
-
-                // إذا لم تكتمل عملية جلب الفيديوهات، أعد المحاولة عند فتح الريلز
-                if (typeof videos !== 'undefined' && videos.length) {
-                    setTimeout(() => playVideo(currentIndex || 0), 100);
-                } else if (typeof fetchVideosFromGoogleSheet === 'function') {
-                    fetchVideosFromGoogleSheet();
-                }
+                openStandaloneReels();
                 return;
             } else {
                 if (navWrapper) navWrapper.style.display = '';
@@ -1434,488 +1547,404 @@ document.addEventListener("touchmove", handleGestureActivation, { passive: true,
 document.addEventListener("wheel", handleGestureActivation, { passive: true, capture: true });
 document.addEventListener("click", handleGestureActivation, { passive: true, capture: true });
 
-function updateSplashProgress(percentage, text) {
-    const fill = document.getElementById("progressFill");
-    const status = document.getElementById("splashStatus");
-    if (fill) fill.style.width = `${percentage}%`;
-    if (status && text) status.innerText = text;
-}
 
-function hideSplashScreen() {
-    const splash = document.getElementById("splashScreen");
-    if (splash) splash.classList.add("hide");
-}
+// ====== نظام الريلز المستخرج من index_fullscreen_scroll_fixed.html ======
+const REELS_SHEET_ID = "1Vt12P6GyuOx0dEEtmFM6fxywOC5zJ6z0baETTmgeD0g";
+const REELS_SHEET_URL = `https://docs.google.com/spreadsheets/d/${REELS_SHEET_ID}/gviz/tq?tqx=out:json`;
+let reelsVideos = [];
+let reelsPlayers = {};
+let reelsCurrentIndex = 0;
+let reelsUserInteracted = false;
+let reelsLoaded = false;
+let isReelsActive = false;
 
-function shuffleArray(array) {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function isTikTokUrl(url) {
-    return url.includes("tiktok.com");
-}
-
-function extractTikTokId(url) {
-    const match = url.match(/\/video\/(\d+)/);
-    return match ? match[1] : null;
-}
-
-function isDirectVideoUrl(url) {
-    return (url.startsWith("http://") || url.startsWith("https://")) && 
-           (url.endsWith(".mp4") || url.endsWith(".webm") || url.endsWith(".ogg") || (!url.includes("youtu") && !url.includes("tiktok.com")));
-}
-
-function extractYouTubeId(url) {
-    if (!url.includes("http")) return url;
-    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-    return match ? match[1] : url;
-}
-
-async function fetchVideosFromGoogleSheet() {
-    try {
-        updateSplashProgress(30, "جاري جلب الدروس...");
-        const response = await fetch(SHEET_URL);
-        const responseText = await response.text();
-
-        if (!response.ok) {
-            throw new Error(`تعذر الوصول إلى Google Sheets (${response.status})`);
-        }
-
-        updateSplashProgress(60, "معالجة المحتوى...");
-
-        // Google Visualization قد يعيد JSON داخل callback وبطول بادئة مختلف.
-        const firstBrace = responseText.indexOf("{");
-        const lastBrace = responseText.lastIndexOf("}");
-
-        if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
-            throw new Error("لم يتم العثور على بيانات JSON في استجابة Google Sheets");
-        }
-
-        const jsonText = responseText.slice(firstBrace, lastBrace + 1);
-
-        let json;
-        try {
-            json = JSON.parse(jsonText);
-        } catch (parseError) {
-            console.error("استجابة Google Sheets غير صالحة:", responseText.substring(0, 300));
-            throw new Error("تعذر قراءة بيانات الريلز من Google Sheets");
-        }
-
-        const rows = json?.table?.rows || [];
-
-        const parsedVideos = rows.map(row => {
-            const rawSource = row.c[0] ? String(row.c[0].v).trim() : "";
+function openStandaloneReels() {
+            reelsUserInteracted = true;
+            isReelsActive = true;
+            const page = document.getElementById('reels-standalone-page');
+            const splash = document.getElementById('reels-splash-screen');
             
-            let type = "youtube";
-            let source = rawSource;
+            splash.classList.remove('hidden-splash');
+            page.classList.add('active');
+            pauseCourseMainVideo(); 
 
-            if (isTikTokUrl(rawSource)) {
-                type = "tiktok";
-                source = extractTikTokId(rawSource) || rawSource;
-            } else if (isDirectVideoUrl(rawSource)) {
-                type = "direct";
-            } else {
-                source = extractYouTubeId(rawSource);
+            setTimeout(() => {
+                splash.classList.add('hidden-splash');
+                if (reelsLoaded && reelsVideos.length > 0) {
+                    playReelsVideo(reelsCurrentIndex);
+                }
+            }, 300);
+        }
+
+function closeStandaloneReels() {
+            isReelsActive = false;
+            document.getElementById('reels-standalone-page').classList.remove('active');
+            pauseAllReelsVideos();
+        }
+
+async function preloadReelsInBackground() {
+            try {
+                const response = await fetch(REELS_SHEET_URL);
+                const text = await response.text();
+                const json = JSON.parse(text.substr(47).slice(0, -2));
+                const rows = json.table.rows;
+
+                const parsedVideos = rows.map(row => {
+                    const rawSource = row.c[0] ? String(row.c[0].v).trim() : "";
+                    let type = "youtube";
+                    let source = rawSource;
+                    let isLandscape = row.c[4] ? String(row.c[4].v).toLowerCase() === 'true' || String(row.c[4].v) === '16:9' : false;
+
+                    if (isTikTokUrl(rawSource)) {
+                        type = "tiktok";
+                        source = extractTikTokId(rawSource) || rawSource;
+                    } else if (isDirectVideoUrl(rawSource)) {
+                        type = "direct";
+                    } else {
+                        source = extractYouTubeId(rawSource);
+                    }
+
+                    return {
+                        source: source,
+                        type: type,
+                        isLandscape: isLandscape,
+                        subject: row.c[1] ? row.c[1].v : "درس تعليمي",
+                        title: row.c[2] ? row.c[2].v : "",
+                        description: row.c[3] ? row.c[3].v : ""
+                    };
+                }).filter(v => v.source !== "" && v.source.toLowerCase() !== "id");
+
+                if(parsedVideos.length > 0) {
+                    reelsVideos = shuffleArray(parsedVideos);
+                    buildReelsFeed();
+                    reelsLoaded = true;
+                }
+            } catch (error) {
+                console.error("خطأ في جلب البيانات:", error);
             }
-
-            return {
-                source: source,
-                type: type,
-                subject: row.c[1] ? row.c[1].v : "درس تعليمي",
-                title: row.c[2] ? row.c[2].v : "",
-                description: row.c[3] ? row.c[3].v : ""
-            };
-        }).filter(v => v.source !== "" && v.source.toLowerCase() !== "id");
-
-        if(parsedVideos.length === 0) throw new Error("لا توجد بيانات داخل الشيت");
-
-        videos = shuffleArray(parsedVideos);
-        
-        updateSplashProgress(90, "تهيئة المشغل...");
-        buildFeed();
-        loadYouTubeAPI();
-
-    } catch (error) {
-        console.error("خطأ في جلب بيانات الريلز:", error);
-        updateSplashProgress(100, "❌ تعذر تحميل الريلز");
-
-        const status = document.getElementById("splashStatus");
-        if (status) {
-            status.innerHTML = `تعذر تحميل الفيديوهات<br><small style="opacity:.7">${error.message || "خطأ غير معروف"}</small>`;
-        }
-    }
-}
-
-function buildFeed() {
-    const feed = document.getElementById("feed");
-    videos.forEach((video, index) => {
-        const card = document.createElement("section");
-        card.className = "video-card";
-        card.id = `card-${index}`;
-
-        let mediaHTML = "";
-        if (video.type === "direct") {
-            mediaHTML = `
-                <video id="direct-video-${index}" playsinline loop muted autoplay>
-                    <source src="${video.source}" type="video/mp4">
-                </video>
-            `;
-        } else if (video.type === "tiktok") {
-            mediaHTML = `
-                <iframe src="https://www.tiktok.com/embed/v2/${video.source}" 
-                        allow="autoplay; encrypted-media" 
-                        allowfullscreen 
-                        style="width: 100%; height: 100%; border: none;"></iframe>
-            `;
-        } else {
-            mediaHTML = `<div id="player-${index}"></div>`;
         }
 
-        card.innerHTML = `
-            <button class="rotate-btn" onclick="toggleRotate(${index})">
-                تدوير الشاشة
-            </button>
+function buildReelsFeed() {
+            const feed = document.getElementById("reels-feed");
+            feed.innerHTML = "";
+            reelsVideos.forEach((video, index) => {
+                const card = document.createElement("section");
+                card.className = "reels-video-card";
+                card.id = `reels-card-${index}`;
 
-            <div class="media-container" id="media-container-${index}">
-                ${mediaHTML}
-            </div>
+                let mediaHTML = "";
+                if (video.type === "direct") {
+                    mediaHTML = `
+                        <video id="reels-direct-video-${index}" playsinline loop preload="auto">
+                            <source src="${video.source}" type="video/mp4">
+                        </video>
+                    `;
+                } else if (video.type === "tiktok") {
+                    mediaHTML = `
+                        <iframe src="https://www.tiktok.com/embed/v2/${video.source}" 
+                                allow="autoplay; encrypted-media" 
+                                allowfullscreen 
+                                style="width: 100%; height: 100%; border: none;"></iframe>
+                    `;
+                } else {
+                    mediaHTML = `<div id="reels-player-${index}"></div>`;
+                }
 
-            <div class="tap-area tap-left" data-side="left" data-index="${index}"></div>
-            <div class="tap-area tap-center" onclick="togglePlayPause(${index})" data-index="${index}"></div>
-            <div class="tap-area tap-right" data-side="right" data-index="${index}"></div>
+                const rotateClass = video.isLandscape ? 'rotated' : '';
 
-            <div class="seek-feedback feedback-left" id="feedback-left-${index}">
-                ↶ <span>-5 ثواني</span>
-            </div>
-            <div class="play-feedback feedback-center" id="feedback-center-${index}">▶</div>
-            <div class="seek-feedback feedback-right" id="feedback-right-${index}">
-                ↷ <span>+5 ثواني</span>
-            </div>
+                card.innerHTML = `
+                    <div class="reels-media-container ${rotateClass}" id="reels-media-container-${index}">
+                        ${mediaHTML}
+                    </div>
 
-            <div class="gradient"></div>
+                    <div class="reels-tap-area reels-tap-left" data-side="left" data-index="${index}"></div>
+                    <div class="reels-tap-area reels-tap-center" onclick="toggleReelsPlayPause(${index})" data-index="${index}"></div>
+                    <div class="reels-tap-area reels-tap-right" data-side="right" data-index="${index}"></div>
 
-            <div class="actions">
-                <button class="action sound-btn" id="sound-btn-${index}" onclick="toggleSound(${index}, this)">🔇</button>
-            </div>
+                    <div class="reels-seek-feedback reels-feedback-left" id="reels-feedback-left-${index}">
+                        ↶ <span>-5 ثواني</span>
+                    </div>
+                    <div class="reels-play-feedback reels-feedback-center" id="reels-feedback-center-${index}">▶</div>
+                    <div class="reels-seek-feedback reels-feedback-right" id="reels-feedback-right-${index}">
+                        ↷ <span>+5 ثواني</span>
+                    </div>
 
-            <div class="info">
-                <span class="subject">${video.subject}</span>
-                <div class="title">${video.title}</div>
-                <div class="description">${video.description}</div>
-            </div>
-        `;
-        feed.appendChild(card);
-    });
+                    <div class="reels-gradient"></div>
 
-    initObserversAndControls();
-}
+                    <div class="reels-actions">
+                        <button class="reels-action sound-btn" id="reels-sound-btn-${index}" onclick="toggleReelsSound(${index}, this)">🔊</button>
+                    </div>
 
-function loadYouTubeAPI() {
-    const hasYouTubeVideos = videos.some(v => v.type === "youtube");
+                    <div class="reels-info">
+                        <span class="reels-subject">${video.subject}</span>
+                        <div class="reels-title">${video.title}</div>
+                        <div class="reels-description">${video.description}</div>
+                    </div>
+                `;
+                feed.appendChild(card);
+            });
 
-    if (!hasYouTubeVideos) {
-        updateSplashProgress(100, "جاهز!");
-        setTimeout(hideSplashScreen, 300);
-        playVideo(0);
-        return;
-    }
+            initReelsObserversAndControls();
+            initYouTubeIframeForReels();
+        }
 
-    // واجهة YouTube موجودة مسبقاً في الصفحة الرئيسية، فلا نضيف script ثانياً.
-    if (window.YT && typeof YT.Player === "function") {
-        onYouTubeIframeAPIReady();
-        return;
-    }
+function initYouTubeIframeForReels() {
+            if (typeof YT !== 'undefined' && YT.Player) {
+                reelsVideos.forEach((video, index) => {
+                    if (video.type === "youtube" && !reelsPlayers[index]) {
+                        reelsPlayers[index] = new YT.Player(`reels-player-${index}`, {
+                            videoId: video.source,
+                            playerVars: {
+                                autoplay: 0, controls: 0, rel: 0, playsinline: 1,
+                                mute: 0, iv_load_policy: 3, cc_load_policy: 0,
+                                modestbranding: 1, enablejsapi: 1,
+                                origin: window.location.origin || '*'
+                            },
+                            events: {
+                                onReady: (e) => { e.target.pauseVideo(); },
+                                onStateChange: (e) => {
+                                    if (e.data === YT.PlayerState.ENDED) scrollReelsNext();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
 
-    // إذا كانت API قيد التحميل، onYouTubeIframeAPIReady ستُستدعى تلقائياً.
-    // وإن لم تكن موجودة لأي سبب، نضيفها مرة واحدة فقط.
-    if (!document.querySelector('script[data-reels-youtube-api]')) {
-        const youtubeScript = document.createElement("script");
-        youtubeScript.src = "https://www.youtube.com/iframe_api";
-        youtubeScript.async = true;
-        youtubeScript.dataset.reelsYoutubeApi = "true";
-        document.head.appendChild(youtubeScript);
-    }
-}
-
-function onYouTubeIframeAPIReady() {
-    videos.forEach((video, index) => {
-        if (video.type === "youtube") {
-            if (players[index]) return;
-            players[index] = new YT.Player(`player-${index}`, {
-                videoId: video.source,
-                playerVars: {
-                    autoplay: 1,
-                    controls: 0,
-                    rel: 0,
-                    playsinline: 1,
-                    mute: 1,
-                    iv_load_policy: 3,
-                    enablejsapi: 1,
-                    origin: window.location.origin || '*'
-                },
-                events: {
-                    onReady: (e) => {
-                        e.target.mute();
-                        if (index === 0) {
-                            updateSplashProgress(100, "اكتمل التحميل!");
-                            setTimeout(hideSplashScreen, 300);
-                            playVideo(0);
+function triggerReelsTriplePreload(currentIndex) {
+            const indicesToPreload = [currentIndex, currentIndex + 1, currentIndex - 1];
+            indicesToPreload.forEach(idx => {
+                if (idx >= 0 && idx < reelsVideos.length) {
+                    const video = reelsVideos[idx];
+                    if (video.type === "youtube" && reelsPlayers[idx] && typeof reelsPlayers[idx].cueVideoById === "function") {
+                        if (idx !== currentIndex) {
+                            reelsPlayers[idx].cueVideoById(video.source);
                         }
-                    },
-                    onStateChange: (e) => {
-                        if (e.data === YT.PlayerState.ENDED) scrollNext();
+                    } else if (video.type === "direct") {
+                        const vid = document.getElementById(`reels-direct-video-${idx}`);
+                        if (vid && idx !== currentIndex) {
+                            vid.load();
+                        }
                     }
                 }
             });
         }
-    });
-}
 
-function playVideo(index) {
-    currentIndex = index;
+function playReelsVideo(index) {
+            if (!isReelsActive) return;
+            reelsCurrentIndex = index;
 
-    videos.forEach((v, i) => {
-        if (i !== index) {
-            if (v.type === "direct") {
-                const vid = document.getElementById(`direct-video-${i}`);
-                if (vid) { vid.pause(); vid.muted = true; }
-            } else if (v.type === "youtube" && players[i] && typeof players[i].pauseVideo === "function") {
-                players[i].pauseVideo();
-                players[i].mute();
+            reelsVideos.forEach((v, i) => {
+                if (i !== index) {
+                    if (v.type === "direct") {
+                        const vid = document.getElementById(`reels-direct-video-${i}`);
+                        if (vid) { vid.pause(); }
+                    } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
+                        reelsPlayers[i].pauseVideo();
+                    }
+                }
+            });
+
+            const currentVideo = reelsVideos[index];
+            if (!currentVideo) return;
+
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) {
+                    vid.muted = false;
+                    let playPromise = vid.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(() => {
+                            vid.muted = true;
+                            vid.play();
+                        });
+                    }
+                }
+            } else if (currentVideo.type === "youtube") {
+                if (reelsPlayers[index] && typeof reelsPlayers[index].playVideo === "function") {
+                    reelsPlayers[index].unMute();
+                    reelsPlayers[index].playVideo();
+                }
             }
-            const btn = document.getElementById(`sound-btn-${i}`);
-            if (btn) btn.innerHTML = "🔇";
+
+            const btn = document.getElementById(`reels-sound-btn-${index}`);
+            if (btn) btn.innerHTML = "🔊";
+
+            triggerReelsTriplePreload(index);
         }
-    });
 
-    const currentVideo = videos[index];
-
-    if (currentVideo.type === "direct") {
-        const vid = document.getElementById(`direct-video-${index}`);
-        if (vid) {
-            vid.muted = !userInteracted;
-            vid.play().catch(() => {
-                vid.muted = true;
-                vid.play();
+function pauseAllReelsVideos() {
+            reelsVideos.forEach((v, i) => {
+                if (v.type === "direct") {
+                    const vid = document.getElementById(`reels-direct-video-${i}`);
+                    if (vid) vid.pause();
+                } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
+                    reelsPlayers[i].pauseVideo();
+                }
             });
         }
-    } else if (currentVideo.type === "youtube") {
-        if (players[index] && typeof players[index].playVideo === "function") {
-            if (userInteracted) players[index].unMute();
-            else players[index].mute();
-            players[index].playVideo();
-        }
-    }
 
-    const btn = document.getElementById(`sound-btn-${index}`);
-    if (btn) btn.innerHTML = userInteracted ? "🔊" : "🔇";
-}
+function toggleReelsPlayPause(index) {
+            if (!isReelsActive) return;
+            const currentVideo = reelsVideos[index];
+            const feedback = document.getElementById(`reels-feedback-center-${index}`);
 
-function unmuteCurrentVideo(index) {
-    const currentVideo = videos[index];
-    const btn = document.getElementById(`sound-btn-${index}`);
-
-    if (currentVideo && currentVideo.type === "direct") {
-        const vid = document.getElementById(`direct-video-${index}`);
-        if (vid) {
-            vid.muted = false;
-            if (btn) btn.innerHTML = "🔊";
-            vid.play().catch(() => {});
-        }
-    } else if (currentVideo && currentVideo.type === "youtube" && players[index] && typeof players[index].unMute === "function") {
-        players[index].unMute();
-        if (btn) btn.innerHTML = "🔊";
-        players[index].playVideo();
-    }
-}
-
-function togglePlayPause(index) {
-    handleGestureActivation();
-    const currentVideo = videos[index];
-    const feedback = document.getElementById(`feedback-center-${index}`);
-
-    if (currentVideo.type === "direct") {
-        const vid = document.getElementById(`direct-video-${index}`);
-        if (vid) {
-            if (vid.paused) {
-                vid.play();
-                if (feedback) { feedback.innerHTML = "▶"; showFeedbackElement(feedback); }
-            } else {
-                vid.pause();
-                if (feedback) { feedback.innerHTML = "⏸"; showFeedbackElement(feedback); }
-            }
-        }
-    } else if (currentVideo.type === "youtube") {
-        const player = players[index];
-        if (!player) return;
-        const state = player.getPlayerState();
-
-        if (state === YT.PlayerState.PLAYING) {
-            player.pauseVideo();
-            if (feedback) { feedback.innerHTML = "⏸"; showFeedbackElement(feedback); }
-        } else {
-            player.playVideo();
-            if (feedback) { feedback.innerHTML = "▶"; showFeedbackElement(feedback); }
-        }
-    }
-}
-
-function toggleRotate(index) {
-    const container = document.getElementById(`media-container-${index}`);
-    if (container) container.classList.toggle("rotated");
-}
-
-function toggleSound(index, button) {
-    handleGestureActivation();
-    const currentVideo = videos[index];
-
-    if (currentVideo.type === "direct") {
-        const vid = document.getElementById(`direct-video-${index}`);
-        if (vid) {
-            vid.muted = !vid.muted;
-            button.innerHTML = vid.muted ? "🔇" : "🔊";
-        }
-    } else if (currentVideo.type === "youtube") {
-        const player = players[index];
-        if (!player) return;
-
-        if (player.isMuted()) {
-            player.unMute();
-            button.innerHTML = "🔊";
-        } else {
-            player.mute();
-            button.innerHTML = "🔇";
-        }
-    }
-}
-
-function seekForward(index) {
-    const currentVideo = videos[index];
-    if (currentVideo.type === "direct") {
-        const vid = document.getElementById(`direct-video-${index}`);
-        if (vid) vid.currentTime = Math.min(vid.currentTime + 5, vid.duration);
-    } else if (currentVideo.type === "youtube") {
-        const player = players[index];
-        if (player && typeof player.getCurrentTime === "function") {
-            player.seekTo(Math.min(player.getCurrentTime() + 5, player.getDuration()), true);
-        }
-    }
-    showSeekFeedback(index, "right");
-}
-
-function seekBackward(index) {
-    const currentVideo = videos[index];
-    if (currentVideo.type === "direct") {
-        const vid = document.getElementById(`direct-video-${index}`);
-        if (vid) vid.currentTime = Math.max(vid.currentTime - 5, 0);
-    } else if (currentVideo.type === "youtube") {
-        const player = players[index];
-        if (player && typeof player.getCurrentTime === "function") {
-            player.seekTo(Math.max(player.getCurrentTime() - 5, 0), true);
-        }
-    }
-    showSeekFeedback(index, "left");
-}
-
-function showFeedbackElement(element) {
-    element.classList.remove("show");
-    void element.offsetWidth;
-    element.classList.add("show");
-    setTimeout(() => element.classList.remove("show"), 500);
-}
-
-function showSeekFeedback(index, side) {
-    const id = side === "right" ? `feedback-right-${index}` : `feedback-left-${index}`;
-    const element = document.getElementById(id);
-    if (element) showFeedbackElement(element);
-}
-
-function enableAudioAndHide() {
-    handleGestureActivation();
-    unmuteCurrentVideo(currentIndex);
-}
-
-function initObserversAndControls() {
-    const cards = document.querySelectorAll(".video-card");
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-                const index = [...cards].indexOf(entry.target);
-                if (index !== currentIndex) playVideo(index);
-            }
-        });
-    }, { threshold: 0.5 });
-
-    cards.forEach(card => observer.observe(card));
-
-    document.addEventListener("keydown", (e) => {
-        handleGestureActivation();
-        if (e.key === "ArrowDown") { e.preventDefault(); scrollNext(); }
-        else if (e.key === "ArrowUp") { e.preventDefault(); scrollPrev(); }
-        else if (e.key === " ") { e.preventDefault(); togglePlayPause(currentIndex); }
-        else if (e.key === "ArrowRight") { seekForward(currentIndex); }
-        else if (e.key === "ArrowLeft") { seekBackward(currentIndex); }
-    });
-
-    // معالجة النقر المزدوج المحسّنة للكمبيوتر والهاتف
-    const tapTracker = new Map();
-
-    document.querySelectorAll(".tap-left, .tap-right").forEach(area => {
-        const handleTap = (e) => {
-            const now = Date.now();
-            const lastTime = tapTracker.get(area) || 0;
-            const index = parseInt(area.dataset.index);
-            const side = area.dataset.side;
-
-            if (now - lastTime < 300) {
-                // نقرة مزدوجة ناتجة
-                if (side === "right") {
-                    seekForward(index);
-                } else {
-                    seekBackward(index);
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) {
+                    if (vid.paused) {
+                        vid.play();
+                        if (feedback) { feedback.innerHTML = "▶"; showReelsFeedbackElement(feedback); }
+                    } else {
+                        vid.pause();
+                        if (feedback) { feedback.innerHTML = "⏸"; showReelsFeedbackElement(feedback); }
+                    }
                 }
-                tapTracker.set(area, 0); // إعادة تعيين لعدم تكرار التقديم في النقرة الثالثة
-            } else {
-                tapTracker.set(area, now);
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (!player) return;
+                const state = player.getPlayerState();
+
+                if (state === YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                    if (feedback) { feedback.innerHTML = "⏸"; showReelsFeedbackElement(feedback); }
+                } else {
+                    player.playVideo();
+                    if (feedback) { feedback.innerHTML = "▶"; showReelsFeedbackElement(feedback); }
+                }
             }
-        };
+        }
 
-        area.addEventListener("touchstart", (e) => {
-            handleGestureActivation();
-            handleTap(e);
-        }, { passive: true });
+function toggleReelsRotate(index) {
+            const container = document.getElementById(`reels-media-container-${index}`);
+            if (container) container.classList.toggle("rotated");
+        }
 
-        area.addEventListener("click", (e) => {
-            // لمنع تكرار تنفيذ الكود في الهواتف عند أخذ الأحداث معاً
-            if (e.pointerType === "mouse") {
-                handleTap(e);
+function toggleReelsSound(index, button) {
+            const currentVideo = reelsVideos[index];
+
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) {
+                    vid.muted = !vid.muted;
+                    button.innerHTML = vid.muted ? "🔇" : "🔊";
+                }
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (!player) return;
+
+                if (player.isMuted()) {
+                    player.unMute();
+                    button.innerHTML = "🔊";
+                } else {
+                    player.mute();
+                    button.innerHTML = "🔇";
+                }
             }
-        });
-    });
-}
+        }
 
-function scrollNext() {
-    const next = Math.min(currentIndex + 1, videos.length - 1);
-    const containerHeight = document.getElementById("feed").clientHeight;
-    document.getElementById("feed").scrollTo({
-        top: next * containerHeight,
-        behavior: "smooth"
-    });
-}
+function seekReelsForward(index) {
+            if (!isReelsActive) return;
+            const currentVideo = reelsVideos[index];
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) vid.currentTime = Math.min(vid.currentTime + 5, vid.duration);
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (player && typeof player.getCurrentTime === "function") {
+                    player.seekTo(Math.min(player.getCurrentTime() + 5, player.getDuration()), true);
+                }
+            }
+            showReelsSeekFeedback(index, "right");
+        }
 
-function scrollPrev() {
-    const prev = Math.max(currentIndex - 1, 0);
-    const containerHeight = document.getElementById("feed").clientHeight;
-    document.getElementById("feed").scrollTo({
-        top: prev * containerHeight,
-        behavior: "smooth"
-    });
-}
+function seekReelsBackward(index) {
+            if (!isReelsActive) return;
+            const currentVideo = reelsVideos[index];
+            if (currentVideo.type === "direct") {
+                const vid = document.getElementById(`reels-direct-video-${index}`);
+                if (vid) vid.currentTime = Math.max(vid.currentTime - 5, 0);
+            } else if (currentVideo.type === "youtube") {
+                const player = reelsPlayers[index];
+                if (player && typeof player.getCurrentTime === "function") {
+                    player.seekTo(Math.max(player.getCurrentTime() - 5, 0), true);
+                }
+            }
+            showReelsSeekFeedback(index, "left");
+        }
 
+function showReelsFeedbackElement(element) {
+            element.classList.remove("show");
+            void element.offsetWidth;
+            element.classList.add("show");
+            setTimeout(() => element.classList.remove("show"), 500);
+        }
+
+function showReelsSeekFeedback(index, side) {
+            const id = side === "right" ? `reels-feedback-right-${index}` : `reels-feedback-left-${index}`;
+            const element = document.getElementById(id);
+            if (element) showReelsFeedbackElement(element);
+        }
+
+function initReelsObserversAndControls() {
+            const cards = document.querySelectorAll(".reels-video-card");
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+                        const index = [...cards].indexOf(entry.target);
+                        if (index !== reelsCurrentIndex && isReelsActive) {
+                            playReelsVideo(index);
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            cards.forEach(card => observer.observe(card));
+
+            const tapTracker = new Map();
+
+            document.querySelectorAll(".reels-tap-left, .reels-tap-right").forEach(area => {
+                area.addEventListener("click", (e) => {
+                    const now = Date.now();
+                    const lastTime = tapTracker.get(area) || 0;
+                    const index = parseInt(area.dataset.index);
+                    const side = area.dataset.side;
+
+                    if (now - lastTime < 300) {
+                        if (side === "right") seekReelsForward(index);
+                        else seekReelsBackward(index);
+                        tapTracker.set(area, 0);
+                    } else {
+                        tapTracker.set(area, now);
+                    }
+                });
+            });
+        }
+
+function scrollReelsNext() {
+            if (!isReelsActive) return;
+            const next = Math.min(reelsCurrentIndex + 1, reelsVideos.length - 1);
+            const containerHeight = document.getElementById("reels-feed").clientHeight;
+            document.getElementById("reels-feed").scrollTo({
+                top: next * containerHeight,
+                behavior: "smooth"
+            });
+            setTimeout(() => playReelsVideo(next), 150);
+        }
+
+function scrollReelsPrevious() {
+            if (!isReelsActive) return;
+            const prev = Math.max(reelsCurrentIndex - 1, 0);
+            const containerHeight = document.getElementById("reels-feed").clientHeight;
+            document.getElementById("reels-feed").scrollTo({
+                top: prev * containerHeight,
+                behavior: "smooth"
+            });
+            setTimeout(() => playReelsVideo(prev), 150);
+        }
+
+window.addEventListener('DOMContentLoaded', () => { preloadReelsInBackground(); });
 </script>
 </body>
 </html>
