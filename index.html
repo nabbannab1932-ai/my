@@ -455,6 +455,33 @@
                     </div>
                 </div>
 
+                <!-- زر الريلز البارز في الصفحة الرئيسية — مدمج مع منصة التميز -->
+                <div class="mb-4">
+                    <button type="button" onclick="openStandaloneReels()"
+                        class="w-full relative overflow-hidden rounded-3xl p-[1px] bg-gradient-to-r from-sky-400 via-blue-600 to-indigo-600 shadow-xl shadow-blue-500/20 active:scale-[0.985] transition-transform duration-150 text-right">
+                        <div class="relative rounded-[23px] bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 px-4 py-4 overflow-hidden">
+                            <div class="absolute -top-12 -left-8 w-32 h-32 rounded-full bg-sky-400/20 blur-2xl"></div>
+                            <div class="absolute -bottom-16 right-0 w-40 h-40 rounded-full bg-blue-600/20 blur-3xl"></div>
+                            <div class="relative flex items-center gap-3">
+                                <div class="w-14 h-14 shrink-0 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/30 border border-white/20">
+                                    <i class="fa-solid fa-play"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] font-black text-sky-300 uppercase tracking-widest">Tamayouz Reels</span>
+                                        <span class="px-1.5 py-0.5 rounded-full bg-amber-400/15 text-amber-300 text-[8px] font-bold border border-amber-400/20">جديد</span>
+                                    </div>
+                                    <h3 class="text-base font-black text-white mb-0.5">شاهد الريلز التعليمية</h3>
+                                    <p class="text-[10px] text-slate-300 truncate">دروس قصيرة • مراجعات • أفكار سريعة • محتوى تعليمي</p>
+                                </div>
+                                <div class="w-9 h-9 rounded-full bg-white/10 border border-white/15 flex items-center justify-center text-white shrink-0">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
                 <div>
                     <div class="flex items-center justify-between mb-2.5">
                         <div class="flex items-center gap-1.5">
@@ -615,8 +642,8 @@
                 </div>
 
                 <div class="flex flex-col items-center justify-center relative">
-                    <div id="reels-nav-glow" class="absolute inset-0 bg-sky-500/20 blur-xl rounded-full scale-125"></div>
-                    <button onclick="openStandaloneReels()" id="nav-reels" class="w-11 h-11 rounded-full bg-gradient-to-b from-sky-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-sky-500/30 relative border-2 border-[#fcfbf7] transition-all">
+                    <div id="reels-nav-glow" class="absolute inset-0 bg-sky-400/35 blur-xl rounded-full scale-150 animate-pulse"></div>
+                    <button onclick="openStandaloneReels()" id="nav-reels" class="w-12 h-12 rounded-full bg-gradient-to-b from-sky-300 via-sky-500 to-blue-700 text-white flex items-center justify-center text-base shadow-lg shadow-sky-500/30 relative border-2 border-[#fcfbf7] transition-all">
                         <i class="fa-solid fa-circle-play"></i>
                     </button>
                     <span id="nav-reels-text" class="text-[9px] font-black text-sky-600 mt-0.5">ريلز</span>
