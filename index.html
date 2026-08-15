@@ -60,17 +60,50 @@
             position: relative;
             overflow: hidden;
         }
-
         #app-content {
             flex: 1;
             overflow-y: auto !important;
+            overflow-x: hidden !important;
             -webkit-overflow-scrolling: touch !important;
-            touch-action: pan-y;
-            scroll-behavior: smooth;
-            overscroll-behavior-y: bounce;
+            touch-action: pan-y !important;
+            scroll-behavior: auto !important;
+            overscroll-behavior-y: auto;
             padding-bottom: calc(95px + var(--safe-bottom));
             position: relative;
+            will-change: scroll-position;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
+
+        /* السحب العمودي يعمل حتى لو بدأ اللمس فوق زر أو بطاقة أو صورة */
+        #app-content > *,
+        #app-content button,
+        #app-content a,
+        #app-content img,
+        #app-content input,
+        #app-content select,
+        #app-content textarea,
+        #app-content label,
+        #app-content [role="button"],
+        #app-content .cursor-pointer {
+            touch-action: pan-y !important;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* الاستثناء الوحيد: القوائم الأفقية */
+        #app-content .horizontal-scroll-container {
+            touch-action: pan-x !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        #app-content {
+            -webkit-touch-callout: none;
+        }
+
 
         #pull-to-refresh-spinner {
             position: absolute;
@@ -683,53 +716,68 @@
         const pullIcon = pullSpinner.querySelector('.id-pull-icon');
 
         appContent.addEventListener('touchstart', (e) => {
-            if (appContent.scrollTop === 0) {
+            if (e.touches.length !== 1) return;
+
+            if (appContent.scrollTop <= 0) {
                 startY = e.touches[0].clientY;
+                currentY = startY;
                 isPulling = true;
+            } else {
+                isPulling = false;
             }
         }, { passive: true });
 
         appContent.addEventListener('touchmove', (e) => {
-            if (!isPulling) return;
+            if (!isPulling || e.touches.length !== 1) return;
+
             currentY = e.touches[0].clientY;
-            let pullDistance = currentY - startY;
+            const pullDistance = currentY - startY;
 
-            if (pullDistance > 0 && appContent.scrollTop === 0) {
-                let moveY = Math.min(pullDistance * 0.4, 70);
-                pullSpinner.style.transform = `translateY(${moveY}px)`;
-                pullSpinner.classList.add('pulling');
+            // السحب للأعلى يتركه بالكامل للـ WebView.
+            if (pullDistance <= 0 || appContent.scrollTop > 0) {
+                isPulling = false;
+                pullSpinner.style.transform = 'translateY(0px)';
+                pullSpinner.classList.remove('pulling');
+                return;
+            }
 
-                if (moveY >= 50) {
-                    pullIcon.className = "fa-solid fa-arrow-rotate-right animate-spin";
-                } else {
-                    pullIcon.className = "fa-solid fa-arrow-down transition-transform duration-200";
-                }
+            // مهم: لا preventDefault هنا، حتى يبقى التمرير الطبيعي سلساً.
+            const moveY = Math.min(pullDistance * 0.4, 70);
+            pullSpinner.style.transform = `translateY(${moveY}px)`;
+            pullSpinner.classList.add('pulling');
+
+            if (moveY >= 50) {
+                pullIcon.className = "fa-solid fa-arrow-rotate-right animate-spin";
+            } else {
+                pullIcon.className = "fa-solid fa-arrow-down transition-transform duration-200";
             }
         }, { passive: true });
 
         appContent.addEventListener('touchend', () => {
             if (!isPulling) return;
-            let pullDistance = currentY - startY;
 
-            if (pullDistance > 110 && appContent.scrollTop === 0) {
-                pullSpinner.style.transform = `translateY(60px)`;
+            const pullDistance = currentY - startY;
+
+            if (pullDistance > 110 && appContent.scrollTop <= 0) {
+                pullSpinner.style.transform = 'translateY(60px)';
                 pullIcon.className = "fa-solid fa-circle-notch animate-spin text-amber-600";
-                
+
                 syncAppDatabase().then(() => {
                     setTimeout(() => {
-                        pullSpinner.style.transform = `translateY(0px)`;
+                        pullSpinner.style.transform = 'translateY(0px)';
                         pullSpinner.classList.remove('pulling');
                         pullIcon.className = "fa-solid fa-arrow-down";
                     }, 500);
                 });
             } else {
-                pullSpinner.style.transform = `translateY(0px)`;
+                pullSpinner.style.transform = 'translateY(0px)';
                 pullSpinner.classList.remove('pulling');
             }
+
             isPulling = false;
             startY = 0;
             currentY = 0;
-        });
+        }, { passive: true });
 
         function openStandaloneReels() {
             reelsUserInteracted = true;
