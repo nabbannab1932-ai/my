@@ -489,6 +489,24 @@
 .reels-screen{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important;background:#000!important;z-index:1;}
 .reels-screen #feed{height:100%!important;}
 #tab-reels{position:absolute;inset:0;background:#000;z-index:80;overflow:hidden;}
+/* إصلاح ارتفاع حاوية الريلز داخل الصفحة الرئيسية */
+#tab-reels .app-container{
+    position:relative!important;
+    width:100%!important;
+    height:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    margin:0!important;
+    background:#000!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+}
+#tab-reels .app-container #feed{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:100%!important;
+}
 .reels-back-btn{position:absolute;top:calc(12px + var(--safe-top));right:12px;z-index:300;background:rgba(0,0,0,.65);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:20px;padding:7px 13px;font-size:12px;font-weight:700;backdrop-filter:blur(10px);}
 
 </style>
@@ -711,18 +729,25 @@
         </div>
 
         <div class="absolute bottom-4 inset-x-4 h-20 z-40" id="app-nav-wrapper">
-            <nav class="w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-3 items-center relative shadow-xl shadow-amber-900/10 transition-colors duration-300" id="app-nav">
+            <nav class="w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-amber-900/10 transition-colors duration-300" id="app-nav">
                 <button onclick="switchTab('courses')" id="nav-courses" class="flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors h-full">
                     <i class="fa-solid fa-file-signature text-lg"></i><span class="text-[11px]">الامتحان</span>
                 </button>
-                <div class="absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center">
+
+                <div class="absolute -top-5 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
                     <div id="center-nav-glow" class="absolute inset-0 bg-amber-500/20 blur-xl rounded-full scale-125"></div>
                     <button onclick="switchTab('home')" id="nav-home" class="w-14 h-14 rounded-full bg-gradient-to-b from-amber-50 to-amber-600 text-white flex items-center justify-center text-xl shadow-lg shadow-amber-500/30 relative border-2 border-[#fcfbf7] transition-all transform hover:scale-105 active:scale-95">
                         <i class="fa-solid fa-house"></i>
                     </button>
                     <span id="nav-home-text" class="text-[11px] font-black text-amber-700 mt-1">الرئيسية</span>
                 </div>
-                <div></div>
+
+                <button onclick="switchTab('reels')" id="nav-reels" class="flex flex-col items-center justify-center gap-1 text-blue-600 font-black transition-all h-full relative">
+                    <span class="absolute w-10 h-10 rounded-full bg-blue-500/10 blur-lg"></span>
+                    <i class="fa-solid fa-clapperboard text-xl relative"></i>
+                    <span class="text-[11px] relative">ريلز</span>
+                </button>
+
                 <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors h-full">
                     <i class="fa-solid fa-circle-user text-lg"></i><span class="text-[11px]">حسابي</span>
                 </button>
@@ -1183,7 +1208,7 @@
             document.getElementById('profile-logged-out').classList.remove('hidden');
         }
 
-        window.addEventListener('DOMContentLoaded', () => { syncAppDatabase(); fetchVideosFromGoogleSheet(); });
+        window.addEventListener('DOMContentLoaded', () => { syncAppDatabase(); });
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
@@ -1192,15 +1217,21 @@
             if (reelsPage) reelsPage.classList.add('hidden');
             const navHome = document.getElementById('nav-home');
             const navCourses = document.getElementById('nav-courses');
+            const navReels = document.getElementById('nav-reels');
             const navProfile = document.getElementById('nav-profile');
             const navHomeText = document.getElementById('nav-home-text');
             const navHomeGlow = document.getElementById('center-nav-glow');
 
-            [navCourses, navProfile].forEach(btn => {
-                btn.classList.remove('text-amber-700', 'dark:text-blue-500', 'font-bold');
+            [navCourses, navReels, navProfile].forEach(btn => {
+                if (!btn) return;
+                btn.classList.remove('text-amber-700', 'dark:text-blue-500', 'text-blue-600', 'font-bold');
                 btn.classList.add('text-slate-400');
-                btn.querySelector('span').classList.remove('font-bold');
+                const span = btn.querySelector('span');
+                if (span) span.classList.remove('font-bold');
             });
+            if (navReels) {
+                navReels.classList.remove('bg-blue-600/10', 'rounded-xl');
+            }
             
             navHome.className = "w-14 h-14 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xl shadow-md relative border-2 border-[#111827] transition-all transform hover:scale-105 active:scale-95";
             navHomeText.className = "text-[11px] font-bold text-slate-400 mt-1";
@@ -1218,8 +1249,12 @@
             if(tabName === 'reels') {
                 if (reelsPage) reelsPage.classList.remove('hidden');
                 if (navWrapper) navWrapper.style.display = 'none';
-                if (typeof playVideo === 'function' && videos.length) {
-                    setTimeout(() => playVideo(currentIndex || 0), 50);
+
+                // إذا لم تكتمل عملية جلب الفيديوهات، أعد المحاولة عند فتح الريلز
+                if (typeof videos !== 'undefined' && videos.length) {
+                    setTimeout(() => playVideo(currentIndex || 0), 100);
+                } else if (typeof fetchVideosFromGoogleSheet === 'function') {
+                    fetchVideosFromGoogleSheet();
                 }
                 return;
             } else {
@@ -1444,11 +1479,33 @@ async function fetchVideosFromGoogleSheet() {
     try {
         updateSplashProgress(30, "جاري جلب الدروس...");
         const response = await fetch(SHEET_URL);
-        const text = await response.text();
-        
+        const responseText = await response.text();
+
+        if (!response.ok) {
+            throw new Error(`تعذر الوصول إلى Google Sheets (${response.status})`);
+        }
+
         updateSplashProgress(60, "معالجة المحتوى...");
-        const json = JSON.parse(text.substr(47).slice(0, -2));
-        const rows = json.table.rows;
+
+        // Google Visualization قد يعيد JSON داخل callback وبطول بادئة مختلف.
+        const firstBrace = responseText.indexOf("{");
+        const lastBrace = responseText.lastIndexOf("}");
+
+        if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+            throw new Error("لم يتم العثور على بيانات JSON في استجابة Google Sheets");
+        }
+
+        const jsonText = responseText.slice(firstBrace, lastBrace + 1);
+
+        let json;
+        try {
+            json = JSON.parse(jsonText);
+        } catch (parseError) {
+            console.error("استجابة Google Sheets غير صالحة:", responseText.substring(0, 300));
+            throw new Error("تعذر قراءة بيانات الريلز من Google Sheets");
+        }
+
+        const rows = json?.table?.rows || [];
 
         const parsedVideos = rows.map(row => {
             const rawSource = row.c[0] ? String(row.c[0].v).trim() : "";
@@ -1483,8 +1540,13 @@ async function fetchVideosFromGoogleSheet() {
         loadYouTubeAPI();
 
     } catch (error) {
-        console.error("خطأ في جلب البيانات:", error);
-        updateSplashProgress(100, "❌ فشل تحميل الدروس");
+        console.error("خطأ في جلب بيانات الريلز:", error);
+        updateSplashProgress(100, "❌ تعذر تحميل الريلز");
+
+        const status = document.getElementById("splashStatus");
+        if (status) {
+            status.innerHTML = `تعذر تحميل الفيديوهات<br><small style="opacity:.7">${error.message || "خطأ غير معروف"}</small>`;
+        }
     }
 }
 
@@ -1554,6 +1616,7 @@ function buildFeed() {
 
 function loadYouTubeAPI() {
     const hasYouTubeVideos = videos.some(v => v.type === "youtube");
+
     if (!hasYouTubeVideos) {
         updateSplashProgress(100, "جاهز!");
         setTimeout(hideSplashScreen, 300);
@@ -1561,14 +1624,27 @@ function loadYouTubeAPI() {
         return;
     }
 
-    const youtubeScript = document.createElement("script");
-    youtubeScript.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(youtubeScript);
+    // واجهة YouTube موجودة مسبقاً في الصفحة الرئيسية، فلا نضيف script ثانياً.
+    if (window.YT && typeof YT.Player === "function") {
+        onYouTubeIframeAPIReady();
+        return;
+    }
+
+    // إذا كانت API قيد التحميل، onYouTubeIframeAPIReady ستُستدعى تلقائياً.
+    // وإن لم تكن موجودة لأي سبب، نضيفها مرة واحدة فقط.
+    if (!document.querySelector('script[data-reels-youtube-api]')) {
+        const youtubeScript = document.createElement("script");
+        youtubeScript.src = "https://www.youtube.com/iframe_api";
+        youtubeScript.async = true;
+        youtubeScript.dataset.reelsYoutubeApi = "true";
+        document.head.appendChild(youtubeScript);
+    }
 }
 
 function onYouTubeIframeAPIReady() {
     videos.forEach((video, index) => {
         if (video.type === "youtube") {
+            if (players[index]) return;
             players[index] = new YT.Player(`player-${index}`, {
                 videoId: video.source,
                 playerVars: {
