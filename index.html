@@ -100,7 +100,7 @@
             transition: all 0.3s ease;
         }
 
-        /* وضع ملء الشاشة للحاوية وتغطية الشاشة بالكامل */
+        /* وضع ملء الشاشة للحاوية وتغطية الشاشة بالكامل متخطياً القالب */
         .video-wrapper-box:fullscreen,
         .video-wrapper-box:-webkit-full-screen,
         .video-wrapper-box:-moz-full-screen,
@@ -112,14 +112,14 @@
             max-height: none !important;
             position: fixed !important;
             inset: 0 !important;
-            z-index: 99999 !important;
+            z-index: 999999 !important;
             background: #000 !important;
         }
 
         .video-wrapper-box.rotated-landscape iframe,
         .video-wrapper-box.rotated-landscape video {
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: 100% !important;
             object-fit: contain !important;
         }
 
@@ -613,6 +613,8 @@
         let overlayTimer = null;
         let isSubtitlesOn = false;
         let isMainVideoRotated = false;
+        let originalVideoParent = null;
+        let originalVideoNextSibling = null;
 
         document.addEventListener('touchstart', () => {
             if (!reelsUserInteracted) reelsUserInteracted = true;
@@ -1460,9 +1462,6 @@
                 directVid.addEventListener('timeupdate', updateDirectVideoProgress);
             }
             toggleOverlayControls();
-
-            // طلب ملء الشاشة تلقائياً عند التشغيل
-            requestVideoFullscreen();
         }
 
         function onMainPlayerReady(e) {
@@ -1599,14 +1598,20 @@
             }, 3500);
         }
 
-        /* 🟢 دالة تدوير وقلب الشاشة بالعرض لملء الشاشة بالكامل */
+        /* 🟢 دالة تدوير الشاشة وتكبيرها لتشمل جميع أبعاد الهاتف مع الهروب من حدود القالب */
         function toggleMainVideoRotate(event) {
             if(event) event.stopPropagation();
             isMainVideoRotated = !isMainVideoRotated;
             const container = document.getElementById('video-container-box');
             
             if (isMainVideoRotated) {
+                if (!originalVideoParent) {
+                    originalVideoParent = container.parentNode;
+                    originalVideoNextSibling = container.nextSibling;
+                }
+                document.body.appendChild(container);
                 container.classList.add('rotated-landscape');
+
                 if (!document.fullscreenElement && container.requestFullscreen) {
                     container.requestFullscreen().catch(() => {});
                 }
@@ -1615,6 +1620,15 @@
                 }
             } else {
                 container.classList.remove('rotated-landscape');
+                if (originalVideoParent) {
+                    if (originalVideoNextSibling) {
+                        originalVideoParent.insertBefore(container, originalVideoNextSibling);
+                    } else {
+                        originalVideoParent.appendChild(container);
+                    }
+                    originalVideoParent = null;
+                    originalVideoNextSibling = null;
+                }
                 if (document.fullscreenElement && document.exitFullscreen) {
                     document.exitFullscreen().catch(() => {});
                 }
@@ -1628,6 +1642,13 @@
             let videoEl = document.getElementById('main-course-direct-video');
 
             if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+                if (!originalVideoParent) {
+                    originalVideoParent = wrapper.parentNode;
+                    originalVideoNextSibling = wrapper.nextSibling;
+                }
+                document.body.appendChild(wrapper);
+                wrapper.classList.add('rotated-landscape');
+
                 if (wrapper.requestFullscreen) {
                     wrapper.requestFullscreen().then(() => {
                         if (screen.orientation && screen.orientation.lock) {
@@ -1636,25 +1657,46 @@
                     }).catch(() => {});
                 } else if (wrapper.webkitRequestFullscreen) {
                     wrapper.webkitRequestFullscreen();
-                } else if (wrapper.mozRequestFullScreen) {
-                    wrapper.mozRequestFullScreen();
-                } else if (wrapper.msRequestFullscreen) {
-                    wrapper.msRequestFullscreen();
                 } else if (videoEl && videoEl.webkitEnterFullscreen) {
                     videoEl.webkitEnterFullscreen();
                 }
             } else {
+                wrapper.classList.remove('rotated-landscape');
+                if (originalVideoParent) {
+                    if (originalVideoNextSibling) {
+                        originalVideoParent.insertBefore(wrapper, originalVideoNextSibling);
+                    } else {
+                        originalVideoParent.appendChild(wrapper);
+                    }
+                    originalVideoParent = null;
+                    originalVideoNextSibling = null;
+                }
                 if (document.exitFullscreen) {
                     document.exitFullscreen().catch(() => {});
                 } else if (document.webkitExitFullscreen) {
                     document.webkitExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
                 }
             }
         }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && !document.webkitIsFullScreen) {
+                const container = document.getElementById('video-container-box');
+                if (isMainVideoRotated) {
+                    isMainVideoRotated = false;
+                    container.classList.remove('rotated-landscape');
+                    if (originalVideoParent) {
+                        if (originalVideoNextSibling) {
+                            originalVideoParent.insertBefore(container, originalVideoNextSibling);
+                        } else {
+                            originalVideoParent.appendChild(container);
+                        }
+                        originalVideoParent = null;
+                        originalVideoNextSibling = null;
+                    }
+                }
+            }
+        });
 
         function filterCoursesBy(type, id, value) {
             currentFilter.type = type;
