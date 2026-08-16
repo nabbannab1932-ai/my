@@ -49,7 +49,6 @@
             100% { background-position: 0% 50%; }
         }
         
-        /* تحسين صندوق مشغل الفيديو وإضافة الأشرطة الشفافة للحماية */
         .video-wrapper-box {
             position: relative;
             width: 100%;
@@ -60,25 +59,25 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.4);
         }
 
-        /* الطبقات الشفافة المانعة للنقر في أعلى وأسفل المشغل (تترك 70% بالوسط) */
-        .video-wrapper-box .block-top-strip {
+        /* الطبقات الشفافة لحماية أعلى وأسفل الفيديو وتحديد نسبة الوسط بـ 60% */
+        .video-overlay-top {
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            height: 15%;
-            z-index: 40;
+            width: 100%;
+            height: 20%;
+            z-index: 25;
             background: transparent;
             pointer-events: auto;
         }
 
-        .video-wrapper-box .block-bottom-strip {
+        .video-overlay-bottom {
             position: absolute;
             bottom: 0;
             left: 0;
-            right: 0;
-            height: 15%;
-            z-index: 40;
+            width: 100%;
+            height: 20%;
+            z-index: 25;
             background: transparent;
             pointer-events: auto;
         }
@@ -261,6 +260,7 @@
             line-height: 1.3;
         }
 
+        /* تعديل موقع الأزرار إلى الوسط وإضافة الشفافية */
         .reels-actions {
             position: absolute;
             left: 12px;
@@ -333,6 +333,7 @@
 
         .reels-rotate-btn:hover, .reels-close-btn:hover { background: rgba(239, 68, 68, 0.8); }
 
+        /* تأثير التوهج والبروز للأزرار الدائرية الوسطى */
         .center-btn-glow-blue {
             box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
             animation: pulseGlowBlue 2.5s infinite alternate;
@@ -434,16 +435,19 @@
                     <span id="playlist-course-title" class="text-xs font-black text-amber-900 max-w-[200px] truncate playlist-main-title">اسم الكورس المختار</span>
                 </div>
 
-                <!-- صندوق الفيديو مع إضافة طبقتين شفافتين بالأعلى والأسفل لحماية عناصر التحكم -->
                 <div class="video-wrapper-box" id="video-container-box">
-                    <div class="block-top-strip"></div>
-                    <div class="block-bottom-strip"></div>
+                    <!-- الشريط الشفاف العلوي لحجب النقر (20%) -->
+                    <div class="video-overlay-top"></div>
+                    
                     <div id="video-player-frame" class="w-full h-full flex items-center justify-center">
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs p-4 text-center" id="player-placeholder">
                             <i class="fa-solid fa-circle-play text-5xl text-blue-500 mb-3 animate-pulse"></i>
                             <span class="font-bold">اضغط على أي درس للتشغيل وملء الشاشة بالكامل</span>
                         </div>
                     </div>
+
+                    <!-- الشريط الشفاف السفلي لحجب النقر (20%) -->
+                    <div class="video-overlay-bottom"></div>
                 </div>
                 <h3 id="current-playing-title" class="text-[11px] font-bold text-amber-700 px-1 truncate"></h3>
 
@@ -697,7 +701,7 @@
         }
 
         /* -------------------------------------------------------------
-           وظائف الريلز المدمجة (مع تعطيل التشغيل التلقائي)
+           وظائف الريلز المدمجة
         ------------------------------------------------------------- */
 
         function handleReelsGestureActivation() {
@@ -705,6 +709,7 @@
                 reelsUserInteracted = true;
                 const overlay = document.getElementById("unmuteOverlay");
                 if (overlay) overlay.style.display = "none";
+                unmuteCurrentReelVideo(currentReelIndex);
             }
         }
 
@@ -780,11 +785,10 @@
             if (reelsPlayers[index]) return;
             if (!window.YT || !window.YT.Player) return;
 
-            /* إلغاء autoplay المباشر لتسهيل إيقاف الفيديوهات بدون ضغط */
             reelsPlayers[index] = new YT.Player(`reel-player-${index}`, {
                 videoId: videoId,
                 playerVars: {
-                    autoplay: 0,
+                    autoplay: 1,
                     controls: 0,
                     rel: 0,
                     playsinline: 1,
@@ -796,6 +800,10 @@
                 events: {
                     onReady: (e) => {
                         e.target.mute();
+                        if (index === currentReelIndex) {
+                            e.target.playVideo();
+                            unmuteCurrentReelVideo(index);
+                        }
                     },
                     onStateChange: (e) => {
                         if (e.data === YT.PlayerState.ENDED) scrollNextReel();
@@ -814,16 +822,15 @@
 
                 let mediaHTML = "";
                 if (video.type === "direct") {
-                    /* إلغاء autoplay لمنع الفيديو المباشر من التشغيل بدون ضغط */
                     mediaHTML = `
-                        <video id="reel-direct-video-${index}" playsinline loop muted preload="metadata">
+                        <video id="reel-direct-video-${index}" playsinline loop muted autoplay>
                             <source src="${video.source}" type="video/mp4">
                         </video>
                     `;
                 } else if (video.type === "tiktok") {
                     mediaHTML = `
                         <iframe src="https://www.tiktok.com/embed/v2/${video.source}" 
-                                allow="encrypted-media" 
+                                allow="autoplay; encrypted-media" 
                                 allowfullscreen 
                                 style="width: 100%; height: 100%; border: none;"></iframe>
                     `;
@@ -869,6 +876,7 @@
                 `;
                 feed.appendChild(card);
 
+                // تهيئة مشغل YouTube فوراً بعد إدراج العنصر
                 if (video.type === "youtube") {
                     initYouTubePlayer(index, video.source);
                 }
@@ -877,6 +885,7 @@
             initReelsObserversAndControls();
         }
 
+        // تحضير يوتيوب لتضمين مشغلات الريلز
         function onYouTubeIframeAPIReady() {
             reelsVideos.forEach((video, index) => {
                 if (video.type === "youtube") {
@@ -889,16 +898,42 @@
             currentReelIndex = index;
 
             reelsVideos.forEach((v, i) => {
-                if (v.type === "direct") {
-                    const vid = document.getElementById(`reel-direct-video-${i}`);
-                    if (vid) { vid.pause(); vid.muted = true; }
-                } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
-                    reelsPlayers[i].pauseVideo();
-                    reelsPlayers[i].mute();
+                if (i !== index) {
+                    if (v.type === "direct") {
+                        const vid = document.getElementById(`reel-direct-video-${i}`);
+                        if (vid) { vid.pause(); vid.muted = true; }
+                    } else if (v.type === "youtube" && reelsPlayers[i] && typeof reelsPlayers[i].pauseVideo === "function") {
+                        reelsPlayers[i].pauseVideo();
+                        reelsPlayers[i].mute();
+                    }
+                    const btn = document.getElementById(`reel-sound-btn-${i}`);
+                    if (btn) btn.innerHTML = "🔇";
                 }
-                const btn = document.getElementById(`reel-sound-btn-${i}`);
-                if (btn) btn.innerHTML = "🔇";
             });
+
+            const currentVideo = reelsVideos[index];
+
+            if (currentVideo && currentVideo.type === "direct") {
+                const vid = document.getElementById(`reel-direct-video-${index}`);
+                if (vid) {
+                    vid.muted = false;
+                    vid.play().then(() => {
+                        unmuteCurrentReelVideo(index);
+                    }).catch(() => {
+                        vid.muted = true;
+                        vid.play();
+                    });
+                }
+            } else if (currentVideo && currentVideo.type === "youtube") {
+                if (reelsPlayers[index] && typeof reelsPlayers[index].playVideo === "function") {
+                    reelsPlayers[index].playVideo();
+                    unmuteCurrentReelVideo(index);
+                } else {
+                    initYouTubePlayer(index, currentVideo.source);
+                }
+            }
+
+            unmuteCurrentReelVideo(index);
         }
 
         function unmuteCurrentReelVideo(index) {
@@ -1027,13 +1062,11 @@
 
         function initReelsObserversAndControls() {
             const cards = document.querySelectorAll("#reels-feed .video-card");
-            
-            /* إيقاف التشغيل التلقائي عند التمرير إلا إذا قام الطالب بالضغط الصريح */
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
                         const index = [...cards].indexOf(entry.target);
-                        currentReelIndex = index;
+                        if (index !== currentReelIndex) playReelVideo(index);
                     }
                 });
             }, { threshold: 0.5 });
@@ -1081,7 +1114,7 @@
                 top: next * containerHeight,
                 behavior: "smooth"
             });
-            currentReelIndex = next;
+            playReelVideo(next);
         }
 
         function scrollPrevReel() {
@@ -1091,7 +1124,7 @@
                 top: prev * containerHeight,
                 behavior: "smooth"
             });
-            currentReelIndex = prev;
+            playReelVideo(prev);
         }
 
         /* -------------------------------------------------------------
@@ -1403,6 +1436,7 @@
 
             statusDiv.classList.remove('hidden', 'bg-red-500/10', 'text-red-400', 'bg-emerald-500/10', 'text-emerald-400', 'bg-blue-500/10', 'text-blue-400');
             
+            // البحث عن الكود في جدول الأكواد
             let codeMatch = db.codes.find(c => {
                 let keys = Object.keys(c);
                 return (c[keys[0]] || "").trim() === codeInput;
@@ -1411,8 +1445,9 @@
             if (codeMatch) {
                 let keys = Object.keys(codeMatch);
                 let targetCourseId = (codeMatch[keys[1]] || "").trim();
-                let assignedUser = (codeMatch[keys[2]] || "").trim();
+                let assignedUser = (codeMatch[keys[2]] || "").trim(); // خانة UsedBy
 
+                // التحقق من صلاحية الكود لاسم المستخدم المخصص
                 if (assignedUser && assignedUser !== currentStudentName.trim()) {
                     statusDiv.innerHTML = `عذراً، هذا الكود مخصص لحساب آخر!`;
                     statusDiv.classList.add('bg-red-500/10', 'text-red-400');
@@ -1601,7 +1636,7 @@
                 });
                 document.querySelectorAll('.video-inner-btn').forEach(btn => {
                     btn.classList.replace('bg-slate-900', 'bg-white');
-                    btn.classList.replace('border-amber-200/60', 'border-amber-200/60');
+                    btn.classList.replace('border-slate-800/60', 'border-amber-200/60');
                 });
                 document.querySelectorAll('.lesson-title-text').forEach(t => t.classList.replace('text-slate-300', 'text-amber-950'));
                 document.querySelectorAll('.chapter-headline-text').forEach(t => t.classList.replace('text-slate-200', 'text-amber-900'));
