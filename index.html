@@ -788,7 +788,7 @@
             reelsPlayers[index] = new YT.Player(`reel-player-${index}`, {
                 videoId: videoId,
                 playerVars: {
-                    autoplay: 1,
+                    autoplay: 0,
                     controls: 0,
                     rel: 0,
                     playsinline: 1,
@@ -800,10 +800,6 @@
                 events: {
                     onReady: (e) => {
                         e.target.mute();
-                        if (index === currentReelIndex) {
-                            e.target.playVideo();
-                            unmuteCurrentReelVideo(index);
-                        }
                     },
                     onStateChange: (e) => {
                         if (e.data === YT.PlayerState.ENDED) scrollNextReel();
@@ -823,7 +819,7 @@
                 let mediaHTML = "";
                 if (video.type === "direct") {
                     mediaHTML = `
-                        <video id="reel-direct-video-${index}" playsinline loop muted autoplay>
+                        <video id="reel-direct-video-${index}" playsinline loop muted>
                             <source src="${video.source}" type="video/mp4">
                         </video>
                     `;
@@ -1066,7 +1062,9 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
                         const index = [...cards].indexOf(entry.target);
-                        if (index !== currentReelIndex) playReelVideo(index);
+                        if (index !== currentReelIndex && !document.getElementById('tab-reels').classList.contains('hidden')) {
+                            playReelVideo(index);
+                        }
                     }
                 });
             }, { threshold: 0.5 });
