@@ -308,14 +308,23 @@
 
         .reels-rotate-btn:hover, .reels-close-btn:hover { background: rgba(239, 68, 68, 0.8); }
 
-        /* تأثير التوهج والبروز لزر الريلز المميز */
-        .reels-btn-glow {
-            box-shadow: 0 0 15px rgba(236, 72, 153, 0.5);
-            animation: pulseGlow 2s infinite alternate;
+        /* تأثير التوهج والبروز للأزرار الدائرية الوسطى */
+        .center-btn-glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            animation: pulseGlowBlue 2.5s infinite alternate;
         }
-        @keyframes pulseGlow {
+        @keyframes pulseGlowBlue {
+            0% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); transform: translateY(-8px) scale(1); }
+            100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.7); transform: translateY(-8px) scale(1.05); }
+        }
+
+        .center-btn-glow-pink {
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.5);
+            animation: pulseGlowPink 2.5s infinite alternate;
+        }
+        @keyframes pulseGlowPink {
             0% { box-shadow: 0 0 10px rgba(236, 72, 153, 0.4); transform: translateY(-8px) scale(1); }
-            100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.7); transform: translateY(-8px) scale(1.06); }
+            100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.7); transform: translateY(-8px) scale(1.05); }
         }
     </style>
 </head>
@@ -426,6 +435,19 @@
                 </div>
             </div>
 
+            <!-- تبويب عرض الامتحان داخلياً -->
+            <div id="tab-exam-viewer" class="space-y-3 tab-page hidden flex-col h-full">
+                <div class="flex items-center justify-between border-b border-amber-200/60 pb-3">
+                    <button onclick="closeExamViewer()" class="text-xs font-bold text-amber-700 hover:text-amber-600 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 flex items-center gap-1.5 transition-all active:scale-95">
+                        <i class="fa-solid fa-arrow-right"></i> العودة للمنصة
+                    </button>
+                    <span id="exam-viewer-title" class="text-xs font-black text-amber-900 truncate max-w-[180px]">عرض الاختبار</span>
+                </div>
+                <div class="flex-1 w-full h-[580px] bg-white rounded-2xl overflow-hidden border border-amber-200/60 shadow-inner relative">
+                    <iframe id="exam-iframe" src="" class="w-full h-full border-none"></iframe>
+                </div>
+            </div>
+
             <!-- تبويب حسابي -->
             <div id="tab-profile" class="space-y-4 tab-page hidden">
                 <div class="bg-white border border-amber-200/60 p-4 rounded-2xl space-y-3" id="activation-panel">
@@ -484,23 +506,27 @@
             <div id="reels-feed"></div>
         </div>
 
-        <!-- شريط التنقل السفلي المطور وزر الريلز البارز -->
+        <!-- شريط التنقل السفلي المطور مع زرين بارزين دائرين بالوسط (الرئيسية والريلز) -->
         <div class="absolute bottom-4 inset-x-4 h-20 z-40" id="app-nav-wrapper">
             <nav class="w-full h-full bg-[#f5f2eb]/95 backdrop-blur-xl border border-amber-200/80 rounded-2xl grid grid-cols-4 items-center relative shadow-xl shadow-amber-900/10 transition-colors duration-300" id="app-nav">
-                <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center justify-center gap-1 text-amber-700 transition-colors h-full">
-                    <i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-bold">الرئيسية</span>
-                </button>
-
                 <button onclick="switchTab('courses')" id="nav-courses" class="flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors h-full">
                     <i class="fa-solid fa-file-signature text-lg"></i><span class="text-[10px]">الامتحان</span>
                 </button>
 
-                <!-- زر الريلز المصمم بشكل جذاب وبارز مرتفع لأعلى -->
+                <!-- زر الرئيسية الدائري البارز في الوسط -->
                 <div class="flex flex-col items-center justify-center relative h-full">
-                    <button onclick="switchTab('reels')" id="nav-reels" class="w-13 h-13 rounded-full bg-gradient-to-tr from-fuchsia-600 via-pink-500 to-amber-500 text-white flex items-center justify-center text-xl shadow-lg reels-btn-glow border-2 border-white/80 transition-all active:scale-90 absolute -top-5">
+                    <button onclick="switchTab('home')" id="nav-home-btn" class="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 text-white flex items-center justify-center text-lg shadow-lg center-btn-glow-blue border-2 border-white/80 transition-all active:scale-90 absolute -top-4">
+                        <i class="fa-solid fa-house"></i>
+                    </button>
+                    <span id="nav-home-text" class="text-[10px] font-black text-blue-600 mt-7">الرئيسية</span>
+                </div>
+
+                <!-- زر الريلز الدائري البارز في الوسط -->
+                <div class="flex flex-col items-center justify-center relative h-full">
+                    <button onclick="switchTab('reels')" id="nav-reels" class="w-12 h-12 rounded-full bg-gradient-to-tr from-fuchsia-600 via-pink-500 to-amber-500 text-white flex items-center justify-center text-lg shadow-lg center-btn-glow-pink border-2 border-white/80 transition-all active:scale-90 absolute -top-4">
                         <i class="fa-solid fa-film"></i>
                     </button>
-                    <span id="nav-reels-text" class="text-[10px] font-black text-pink-600 mt-7">ريلز</span>
+                    <span id="nav-reels-text" class="text-[10px] font-bold text-slate-400 mt-7">الريلز</span>
                 </div>
 
                 <button onclick="switchTab('profile')" id="nav-profile" class="flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors h-full">
@@ -1068,6 +1094,20 @@
         }
 
         /* -------------------------------------------------------------
+           فتح الامتحانات داخلياً
+        ------------------------------------------------------------- */
+        function openExamViewer(url, subjectTitle) {
+            document.getElementById('exam-viewer-title').innerText = "اختبار: " + subjectTitle;
+            document.getElementById('exam-iframe').src = url;
+            switchTab('exam-viewer');
+        }
+
+        function closeExamViewer() {
+            document.getElementById('exam-iframe').src = "";
+            switchTab('courses');
+        }
+
+        /* -------------------------------------------------------------
            عرض الأقسام والعناصر الأصلية للمنصة
         ------------------------------------------------------------- */
 
@@ -1084,6 +1124,8 @@
                     let formUrl = row[subjectName];
                     if (formUrl && (formUrl.startsWith('http://') || formUrl.startsWith('https://'))) {
                         let iconClass = getSubjectIcon(subjectName);
+                        let cleanUrl = formUrl.replace(/'/g, "\\'");
+                        let cleanSubject = subjectName.replace(/'/g, "\\'");
                         container.innerHTML += `
                             <div class="p-4 rounded-2xl bg-white border border-amber-200/60 flex items-center justify-between hover:border-amber-500/50 transition-all element-card-box animate__animated animate__fadeInUp">
                                 <div class="flex items-center gap-3">
@@ -1095,9 +1137,9 @@
                                         <p class="text-[10px] text-slate-500">نموذج رقم (${index + 1}) - اختبار مباشر</p>
                                     </div>
                                 </div>
-                                <a href="${formUrl}" target="_blank" class="text-[10px] text-amber-700 font-bold bg-amber-500/5 px-2.5 py-1 rounded-md border border-amber-500/20 flex items-center gap-1 transition-all active:scale-95 action-play-badge">
+                                <button onclick="openExamViewer('${cleanUrl}', '${cleanSubject}')" class="text-[10px] text-amber-700 font-bold bg-amber-500/5 px-3 py-1.5 rounded-xl border border-amber-500/20 flex items-center gap-1 transition-all active:scale-95 action-play-badge">
                                     <i class="fa-solid fa-pen-to-square"></i> ابدأ الاختبار
-                                </a>
+                                </button>
                             </div>
                         `;
                     }
@@ -1341,20 +1383,47 @@
             renderHomeCoursesSection();
         }
 
+        /* -------------------------------------------------------------
+           التحقق من الكود المخصص للحساب المذكور في خانة UsedBy
+        ------------------------------------------------------------- */
         function handleCodeActivation() {
             const codeInput = document.getElementById('activation-code-input').value.trim();
             const statusDiv = document.getElementById('activation-status');
+            const currentStudentName = localStorage.getItem('logged_student_name');
+
             if(!codeInput) return;
 
-            statusDiv.classList.remove('hidden', 'bg-red-500/10', 'text-red-400', 'bg-emerald-500/10', 'text-emerald-400');
-            let codeMatch = db.codes.find(c => c[Object.keys(c)[0]] === codeInput);
+            if(!currentStudentName) {
+                statusDiv.innerHTML = `يرجى تسجيل الدخول للحساب أولاً لتفعيل الكود!`;
+                statusDiv.classList.remove('hidden', 'bg-emerald-500/10', 'text-emerald-400', 'bg-blue-500/10', 'text-blue-400');
+                statusDiv.classList.add('bg-red-500/10', 'text-red-400');
+                return;
+            }
+
+            statusDiv.classList.remove('hidden', 'bg-red-500/10', 'text-red-400', 'bg-emerald-500/10', 'text-emerald-400', 'bg-blue-500/10', 'text-blue-400');
+            
+            // البحث عن الكود في جدول الأكواد
+            let codeMatch = db.codes.find(c => {
+                let keys = Object.keys(c);
+                return (c[keys[0]] || "").trim() === codeInput;
+            });
 
             if (codeMatch) {
-                let targetCourseId = codeMatch[Object.keys(codeMatch)[1]];
+                let keys = Object.keys(codeMatch);
+                let targetCourseId = (codeMatch[keys[1]] || "").trim();
+                let assignedUser = (codeMatch[keys[2]] || "").trim(); // خانة UsedBy
+
+                // التحقق من صلاحية الكود لاسم المستخدم المخصص
+                if (assignedUser && assignedUser !== currentStudentName.trim()) {
+                    statusDiv.innerHTML = `عذراً، هذا الكود مخصص لحساب آخر!`;
+                    statusDiv.classList.add('bg-red-500/10', 'text-red-400');
+                    return;
+                }
+
                 if(!activatedCourseIds.includes(targetCourseId)) {
                     activatedCourseIds.push(targetCourseId);
                     localStorage.setItem('activated_courses_list', JSON.stringify(activatedCourseIds));
-                    statusDiv.innerHTML = `تم تفعيل الكورس بنجاح!`;
+                    statusDiv.innerHTML = `تم تفعيل الكورس بنجاح للحساب!`;
                     statusDiv.classList.add('bg-emerald-500/10', 'text-emerald-400');
                     document.getElementById('activation-code-input').value = "";
                     renderHomeCoursesSection();
@@ -1406,19 +1475,23 @@
         function switchTab(tabName) {
             document.querySelectorAll('.tab-page').forEach(page => page.classList.add('hidden'));
             
-            const navHome = document.getElementById('nav-home');
+            const navHomeText = document.getElementById('nav-home-text');
             const navCourses = document.getElementById('nav-courses');
-            const navReels = document.getElementById('nav-reels');
             const navReelsText = document.getElementById('nav-reels-text');
             const navProfile = document.getElementById('nav-profile');
 
-            [navHome, navCourses, navProfile].forEach(btn => {
+            [navCourses, navProfile].forEach(btn => {
                 if(btn) {
                     btn.classList.remove('text-amber-700', 'dark:text-blue-500', 'font-bold');
                     btn.classList.add('text-slate-400');
                     btn.querySelector('span').classList.remove('font-bold');
                 }
             });
+
+            if(navHomeText) {
+                navHomeText.classList.remove('font-black', 'text-blue-600');
+                navHomeText.classList.add('text-slate-400');
+            }
 
             if(navReelsText) {
                 navReelsText.classList.remove('font-black', 'text-pink-600');
@@ -1456,7 +1529,8 @@
             } else if(tabName === 'reels') {
                 document.getElementById('tab-reels').classList.remove('hidden');
                 if(navReelsText) {
-                    navReelsText.classList.add('font-black', 'text-pink-600');
+                    navReelsText.classList.replace('text-slate-400', 'text-pink-600');
+                    navReelsText.classList.add('font-black');
                 }
                 playReelVideo(currentReelIndex);
             } else if(tabName === 'courses') {
@@ -1467,15 +1541,19 @@
                 document.getElementById('tab-profile').classList.remove('hidden');
                 navProfile.classList.add('text-amber-700', 'dark:text-blue-500');
                 navProfile.querySelector('span').classList.add('font-bold');
+            } else if(tabName === 'exam-viewer') {
+                document.getElementById('tab-exam-viewer').classList.remove('hidden');
+                navCourses.classList.add('text-amber-700', 'dark:text-blue-500');
+                navCourses.querySelector('span').classList.add('font-bold');
             }
             if(!isDarkMode) applyThemeModifications();
         }
 
         function setupActiveHomeNavStyle() {
-            const navHome = document.getElementById('nav-home');
-            if(navHome) {
-                navHome.classList.add('text-amber-700');
-                navHome.querySelector('span').classList.add('font-bold');
+            const navHomeText = document.getElementById('nav-home-text');
+            if(navHomeText) {
+                navHomeText.classList.replace('text-slate-400', 'text-blue-600');
+                navHomeText.classList.add('font-black');
             }
         }
 
