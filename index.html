@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>منصة التميز التعليمية</title>
     <meta name="apple-mobile-web-app-title" content="منصة التميز">
     <meta name="application-name" content="منصة التميز">
@@ -59,7 +60,7 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.4);
         }
 
-        /* الطبقات الشفافة لحماية أعلى وأسفل الفيديو وتحديد نسبة الوسط بـ 50% */
+        /* الطبقات الشفافة لحماية أعلى وأسفل الفيديو وتحديد منطقة الضغط الوسطى بـ 50% */
         .video-overlay-top {
             position: absolute;
             top: 0;
@@ -393,7 +394,7 @@
             <!-- تبويب الرئيسية -->
             <div id="tab-home" class="space-y-5 tab-page">
                 <div class="w-full h-48 rounded-2xl bg-white relative overflow-hidden shadow-lg border border-amber-200/60 animate__animated animate__fadeInDown">
-                    <img id="dynamic-banner-img" src="" class="w-full h-full object-cover absolute inset-0 transition-opacity duration-500 opacity-60">
+                    <img id="dynamic-banner-img" src="" alt="الإعلان" class="w-full h-full object-cover absolute inset-0 transition-opacity duration-500 opacity-60" onerror="this.style.opacity='0'">
                     <div class="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/95 via-black/30 to-transparent">
                         <span id="banner-badge" class="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full w-max mb-1.5 shadow-sm tracking-wide">لوحة الإعلانات الحية</span>
                         <h3 id="dynamic-banner-text" class="text-xs font-bold text-white leading-relaxed">جاري تحميل الإعلان المخصص للمنصة...</h3>
@@ -598,17 +599,59 @@
 
         function convertDriveUrlToDirect(url) {
             if (!url) return "";
-            url = url.trim();
+            url = String(url).trim();
+            if (!url) return "";
+
+            // إذا كان الرابط من Google Drive نستخرج ID ونستخدم thumbnail
+            // لأنه أكثر توافقاً مع الاستضافة على GitHub Pages من روابط lh3 القديمة.
             if (url.includes("drive.google.com")) {
                 let id = "";
-                if (url.includes("/d/")) {
-                    id = url.split("/d/")[1].split("/")[0].split("?")[0];
-                } else if (url.includes("id=")) {
-                    id = url.split("id=")[1].split("&")[0];
-                }
-                if (id) return `https://lh3.googleusercontent.com/d/${id}=w1000`;
+
+                const dMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                const ucMatch = url.match(/drive\.google\.com\/(?:uc|thumbnail)(?:\?[^#]*&)?id=([a-zA-Z0-9_-]+)/);
+
+                if (dMatch) id = dMatch[1];
+                else if (idMatch) id = idMatch[1];
+                else if (ucMatch) id = ucMatch[1];
+
+                if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
             }
+
             return url;
+        }
+
+        function setImageWithFallback(imgElement, rawUrl, fallback = "") {
+            if (!imgElement) return;
+            const url = convertDriveUrlToDirect(rawUrl);
+            if (!url) {
+                if (fallback) imgElement.src = fallback;
+                return;
+            }
+
+            imgElement.onerror = () => {
+                imgElement.onerror = null;
+
+                // محاولة ثانية لرابط Google Drive بصيغة uc?export=view
+                if (String(rawUrl).includes("drive.google.com")) {
+                    const m = String(rawUrl).match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]+)/);
+                    if (m && m[1]) {
+                        const retryUrl = `https://drive.google.com/uc?export=view&id=${m[1]}`;
+                        if (imgElement.src !== retryUrl) {
+                            imgElement.onerror = () => {
+                                imgElement.onerror = null;
+                                if (fallback) imgElement.src = fallback;
+                            };
+                            imgElement.src = retryUrl;
+                            return;
+                        }
+                    }
+                }
+
+                if (fallback) imgElement.src = fallback;
+            };
+
+            imgElement.src = url;
         }
 
         function getSubjectIcon(subjectName) {
@@ -654,49 +697,108 @@
             if (savedCourses) activatedCourseIds = JSON.parse(savedCourses);
         }
 
-        async function syncAppDatabase() {
-            loadSavedStorageData();
+        async function fetchTextSafe(url, timeoutMs = 12000) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), timeoutMs);
             try {
-                const [resSub, resTea, resAcc, resCou, resCod, resLes, resExa] = await Promise.all([
-                    fetch(BASE_CSV + GIDS.subjects),
-                    fetch(BASE_CSV + GIDS.teachers),
-                    fetch(BASE_CSV + GIDS.accounts),
-                    fetch(BASE_CSV + GIDS.courses),
-                    fetch(BASE_CSV + GIDS.codes),
-                    fetch(BASE_CSV + GIDS.lessons).catch(() => null),
-                    fetch(BASE_CSV + GIDS.exams).catch(() => null)
+                const response = await fetch(url, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.text();
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
+
+        async function fetchCsvSafe(url) {
+            try {
+                const text = await fetchTextSafe(url);
+                return parseCSV(text);
+            } catch (error) {
+                console.warn('تعذر تحميل البيانات:', url, error);
+                return [];
+            }
+        }
+
+        async function syncAppDatabase() {
+            const loader = document.getElementById('premium-loader');
+            const loaderText = document.getElementById('loader-text');
+
+            try {
+                loadSavedStorageData();
+
+                // تحميل كل ورقة بشكل مستقل حتى لا يؤدي فشل ورقة واحدة
+                // إلى توقف المنصة كاملة، خصوصاً على GitHub Pages.
+                const [subjects, teachers, accounts, courses, codes, lessons, exams] = await Promise.all([
+                    fetchCsvSafe(BASE_CSV + GIDS.subjects),
+                    fetchCsvSafe(BASE_CSV + GIDS.teachers),
+                    fetchCsvSafe(BASE_CSV + GIDS.accounts),
+                    fetchCsvSafe(BASE_CSV + GIDS.courses),
+                    fetchCsvSafe(BASE_CSV + GIDS.codes),
+                    fetchCsvSafe(BASE_CSV + GIDS.lessons),
+                    fetchCsvSafe(BASE_CSV + GIDS.exams)
                 ]);
 
-                db.subjects = parseCSV(await resSub.text());
-                db.teachers = parseCSV(await resTea.text());
-                db.accounts = parseCSV(await resAcc.text());
-                db.courses = parseCSV(await resCou.text());
-                db.codes = parseCSV(await resCod.text());
-                if (resLes) db.lessons = parseCSV(await resLes.text());
-                if (resExa) db.exams = parseCSV(await resExa.text());
+                db.subjects = subjects;
+                db.teachers = teachers;
+                db.accounts = accounts;
+                db.courses = courses;
+                db.codes = codes;
+                db.lessons = lessons;
+                db.exams = exams;
 
-                if(db.accounts.length > 0) {
-                    let firstRow = db.accounts[0];
-                    let headers = Object.keys(firstRow);
-                    let bannerRawUrl = firstRow[headers[4]] || "";
-                    if(bannerRawUrl) document.getElementById('dynamic-banner-img').src = convertDriveUrlToDirect(bannerRawUrl);
-                    let bannerText = firstRow[headers[5]] || "";
-                    if(bannerText) document.getElementById('dynamic-banner-text').innerText = bannerText;
+                // إظهار الواجهة الأساسية فوراً بعد محاولة تحميل البيانات،
+                // وعدم إبقاء شاشة البداية معلقة بانتظار الريلز.
+                try {
+                    renderUIElements();
+                    renderExamsSection();
+                } catch (renderError) {
+                    console.warn('خطأ أثناء رسم الواجهة:', renderError);
                 }
 
-                renderUIElements();
-                renderExamsSection();
-                
-                // جلب بيانات الريلز أثناء التحميل
-                await fetchReelsFromGoogleSheet();
+                // الإعلان: جرّب رابط الصورة من الجدول بصيغة Google Drive المتوافقة.
+                if (db.accounts.length > 0) {
+                    const firstRow = db.accounts[0];
+                    const headers = Object.keys(firstRow);
+                    const bannerRawUrl = firstRow[headers[4]] || "";
+                    const bannerText = firstRow[headers[5]] || "";
+                    const bannerImg = document.getElementById('dynamic-banner-img');
 
-                const loader = document.getElementById('premium-loader');
-                loader.classList.add('animate__animated', 'animate__fadeOut');
-                setTimeout(() => loader.style.display = 'none', 1000);
+                    if (bannerRawUrl) {
+                        setImageWithFallback(bannerImg, bannerRawUrl);
+                    }
+                    if (bannerText) {
+                        document.getElementById('dynamic-banner-text').innerText = bannerText;
+                    }
+                }
+
+                if (loaderText) {
+                    loaderText.innerText = db.subjects.length || db.courses.length
+                        ? 'تم تحميل المنصة بنجاح...'
+                        : 'تم فتح المنصة، جاري مزامنة البيانات...';
+                }
 
             } catch (err) {
-                document.getElementById('loader-text').innerText = "فشلت المزامنة، تأكد من اتصالك بالإنترنت.";
-                console.error(err);
+                console.error('خطأ عام أثناء تشغيل المنصة:', err);
+                if (loaderText) loaderText.innerText = 'تم فتح المنصة، ويمكن تحديث البيانات لاحقاً.';
+            } finally {
+                // لا نجعل الريلز أو أي خدمة خارجية تمنع ظهور المنصة.
+                requestAnimationFrame(() => {
+                    if (loader) {
+                        loader.classList.add('animate__animated', 'animate__fadeOut');
+                        setTimeout(() => {
+                            loader.style.display = 'none';
+                        }, 700);
+                    }
+                });
+
+                // الريلز يتم تحميلها في الخلفية مع مهلة زمنية.
+                fetchReelsFromGoogleSheet().catch(error => {
+                    console.warn('تعذر تحميل الريلز:', error);
+                });
             }
         }
 
@@ -744,8 +846,7 @@
 
         async function fetchReelsFromGoogleSheet() {
             try {
-                const response = await fetch(REELS_SHEET_URL);
-                const text = await response.text();
+                const text = await fetchTextSafe(REELS_SHEET_URL, 10000);
                 const json = JSON.parse(text.substr(47).slice(0, -2));
                 const rows = json.table.rows;
 
