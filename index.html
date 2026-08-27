@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>منصة التميز التعليمية</title>
     <meta name="apple-mobile-web-app-title" content="منصة التميز">
     <meta name="application-name" content="منصة التميز">
@@ -60,7 +59,7 @@
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.4);
         }
 
-        /* الطبقات الشفافة لحماية أعلى وأسفل الفيديو وتحديد منطقة الضغط الوسطى بـ 50% */
+        /* الطبقات الشفافة لحماية أعلى وأسفل الفيديو وتحديد نسبة الوسط بـ 50% */
         .video-overlay-top {
             position: absolute;
             top: 0;
@@ -352,6 +351,136 @@
             0% { box-shadow: 0 0 10px rgba(236, 72, 153, 0.4); transform: translateY(-8px) scale(1); }
             100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.7); transform: translateY(-8px) scale(1.05); }
         }
+
+        /* مشغل مخصص لأجهزة Android: يمنع التفاعل المباشر مع واجهة YouTube */
+        #android-custom-player {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 99999;
+            display: none;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #android-custom-player.active { display: block; }
+
+        #android-custom-player .android-player-media {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        #android-custom-player iframe,
+        #android-custom-player video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            object-fit: contain;
+            background: #000;
+        }
+
+        /* يمنع أي ضغط مباشر على عناصر YouTube داخل iframe */
+        #android-custom-player .android-video-shield {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background: transparent;
+            pointer-events: auto;
+        }
+
+        #android-custom-player .android-top-safe,
+        #android-custom-player .android-bottom-safe {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 25%;
+            z-index: 4;
+            background: transparent;
+            pointer-events: auto;
+        }
+
+        #android-custom-player .android-top-safe { top: 0; }
+        #android-custom-player .android-bottom-safe { bottom: 0; }
+
+        #android-custom-player .android-controls {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 18px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 18px;
+            background: rgba(0,0,0,.62);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            direction: ltr;
+        }
+
+        #android-custom-player .android-btn {
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 50%;
+            background: rgba(255,255,255,.08);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            flex: 0 0 auto;
+        }
+
+        #android-custom-player .android-btn:active { transform: scale(.92); }
+
+        #android-custom-player .android-title {
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            direction: rtl;
+            text-align: right;
+            padding: 0 4px;
+        }
+
+        #android-custom-player .android-message {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            z-index: 6;
+            color: #fff;
+            font-size: 11px;
+            background: rgba(0,0,0,.55);
+            border: 1px solid rgba(255,255,255,.15);
+            padding: 7px 11px;
+            border-radius: 12px;
+            pointer-events: none;
+            direction: rtl;
+        }
+
+        @media (min-width: 700px) {
+            #android-custom-player .android-controls {
+                left: 50%;
+                right: auto;
+                width: min(720px, calc(100vw - 32px));
+                transform: translateX(-50%);
+            }
+        }
+
     </style>
 </head>
 <body class="gradient-bg flex items-center justify-center min-h-screen p-0 md:p-4 transition-colors duration-300" id="body-layout">
@@ -394,7 +523,7 @@
             <!-- تبويب الرئيسية -->
             <div id="tab-home" class="space-y-5 tab-page">
                 <div class="w-full h-48 rounded-2xl bg-white relative overflow-hidden shadow-lg border border-amber-200/60 animate__animated animate__fadeInDown">
-                    <img id="dynamic-banner-img" src="" alt="الإعلان" class="w-full h-full object-cover absolute inset-0 transition-opacity duration-500 opacity-60" onerror="this.style.opacity='0'">
+                    <img id="dynamic-banner-img" src="" class="w-full h-full object-cover absolute inset-0 transition-opacity duration-500 opacity-60">
                     <div class="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/95 via-black/30 to-transparent">
                         <span id="banner-badge" class="text-[10px] bg-amber-600 text-white font-bold px-2 py-0.5 rounded-full w-max mb-1.5 shadow-sm tracking-wide">لوحة الإعلانات الحية</span>
                         <h3 id="dynamic-banner-text" class="text-xs font-bold text-white leading-relaxed">جاري تحميل الإعلان المخصص للمنصة...</h3>
@@ -599,59 +728,17 @@
 
         function convertDriveUrlToDirect(url) {
             if (!url) return "";
-            url = String(url).trim();
-            if (!url) return "";
-
-            // إذا كان الرابط من Google Drive نستخرج ID ونستخدم thumbnail
-            // لأنه أكثر توافقاً مع الاستضافة على GitHub Pages من روابط lh3 القديمة.
+            url = url.trim();
             if (url.includes("drive.google.com")) {
                 let id = "";
-
-                const dMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                const ucMatch = url.match(/drive\.google\.com\/(?:uc|thumbnail)(?:\?[^#]*&)?id=([a-zA-Z0-9_-]+)/);
-
-                if (dMatch) id = dMatch[1];
-                else if (idMatch) id = idMatch[1];
-                else if (ucMatch) id = ucMatch[1];
-
-                if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1200`;
-            }
-
-            return url;
-        }
-
-        function setImageWithFallback(imgElement, rawUrl, fallback = "") {
-            if (!imgElement) return;
-            const url = convertDriveUrlToDirect(rawUrl);
-            if (!url) {
-                if (fallback) imgElement.src = fallback;
-                return;
-            }
-
-            imgElement.onerror = () => {
-                imgElement.onerror = null;
-
-                // محاولة ثانية لرابط Google Drive بصيغة uc?export=view
-                if (String(rawUrl).includes("drive.google.com")) {
-                    const m = String(rawUrl).match(/(?:\/d\/|[?&]id=)([a-zA-Z0-9_-]+)/);
-                    if (m && m[1]) {
-                        const retryUrl = `https://drive.google.com/uc?export=view&id=${m[1]}`;
-                        if (imgElement.src !== retryUrl) {
-                            imgElement.onerror = () => {
-                                imgElement.onerror = null;
-                                if (fallback) imgElement.src = fallback;
-                            };
-                            imgElement.src = retryUrl;
-                            return;
-                        }
-                    }
+                if (url.includes("/d/")) {
+                    id = url.split("/d/")[1].split("/")[0].split("?")[0];
+                } else if (url.includes("id=")) {
+                    id = url.split("id=")[1].split("&")[0];
                 }
-
-                if (fallback) imgElement.src = fallback;
-            };
-
-            imgElement.src = url;
+                if (id) return `https://lh3.googleusercontent.com/d/${id}=w1000`;
+            }
+            return url;
         }
 
         function getSubjectIcon(subjectName) {
@@ -697,108 +784,49 @@
             if (savedCourses) activatedCourseIds = JSON.parse(savedCourses);
         }
 
-        async function fetchTextSafe(url, timeoutMs = 12000) {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), timeoutMs);
-            try {
-                const response = await fetch(url, {
-                    method: 'GET',
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.text();
-            } finally {
-                clearTimeout(timeout);
-            }
-        }
-
-        async function fetchCsvSafe(url) {
-            try {
-                const text = await fetchTextSafe(url);
-                return parseCSV(text);
-            } catch (error) {
-                console.warn('تعذر تحميل البيانات:', url, error);
-                return [];
-            }
-        }
-
         async function syncAppDatabase() {
-            const loader = document.getElementById('premium-loader');
-            const loaderText = document.getElementById('loader-text');
-
+            loadSavedStorageData();
             try {
-                loadSavedStorageData();
-
-                // تحميل كل ورقة بشكل مستقل حتى لا يؤدي فشل ورقة واحدة
-                // إلى توقف المنصة كاملة، خصوصاً على GitHub Pages.
-                const [subjects, teachers, accounts, courses, codes, lessons, exams] = await Promise.all([
-                    fetchCsvSafe(BASE_CSV + GIDS.subjects),
-                    fetchCsvSafe(BASE_CSV + GIDS.teachers),
-                    fetchCsvSafe(BASE_CSV + GIDS.accounts),
-                    fetchCsvSafe(BASE_CSV + GIDS.courses),
-                    fetchCsvSafe(BASE_CSV + GIDS.codes),
-                    fetchCsvSafe(BASE_CSV + GIDS.lessons),
-                    fetchCsvSafe(BASE_CSV + GIDS.exams)
+                const [resSub, resTea, resAcc, resCou, resCod, resLes, resExa] = await Promise.all([
+                    fetch(BASE_CSV + GIDS.subjects),
+                    fetch(BASE_CSV + GIDS.teachers),
+                    fetch(BASE_CSV + GIDS.accounts),
+                    fetch(BASE_CSV + GIDS.courses),
+                    fetch(BASE_CSV + GIDS.codes),
+                    fetch(BASE_CSV + GIDS.lessons).catch(() => null),
+                    fetch(BASE_CSV + GIDS.exams).catch(() => null)
                 ]);
 
-                db.subjects = subjects;
-                db.teachers = teachers;
-                db.accounts = accounts;
-                db.courses = courses;
-                db.codes = codes;
-                db.lessons = lessons;
-                db.exams = exams;
+                db.subjects = parseCSV(await resSub.text());
+                db.teachers = parseCSV(await resTea.text());
+                db.accounts = parseCSV(await resAcc.text());
+                db.courses = parseCSV(await resCou.text());
+                db.codes = parseCSV(await resCod.text());
+                if (resLes) db.lessons = parseCSV(await resLes.text());
+                if (resExa) db.exams = parseCSV(await resExa.text());
 
-                // إظهار الواجهة الأساسية فوراً بعد محاولة تحميل البيانات،
-                // وعدم إبقاء شاشة البداية معلقة بانتظار الريلز.
-                try {
-                    renderUIElements();
-                    renderExamsSection();
-                } catch (renderError) {
-                    console.warn('خطأ أثناء رسم الواجهة:', renderError);
+                if(db.accounts.length > 0) {
+                    let firstRow = db.accounts[0];
+                    let headers = Object.keys(firstRow);
+                    let bannerRawUrl = firstRow[headers[4]] || "";
+                    if(bannerRawUrl) document.getElementById('dynamic-banner-img').src = convertDriveUrlToDirect(bannerRawUrl);
+                    let bannerText = firstRow[headers[5]] || "";
+                    if(bannerText) document.getElementById('dynamic-banner-text').innerText = bannerText;
                 }
 
-                // الإعلان: جرّب رابط الصورة من الجدول بصيغة Google Drive المتوافقة.
-                if (db.accounts.length > 0) {
-                    const firstRow = db.accounts[0];
-                    const headers = Object.keys(firstRow);
-                    const bannerRawUrl = firstRow[headers[4]] || "";
-                    const bannerText = firstRow[headers[5]] || "";
-                    const bannerImg = document.getElementById('dynamic-banner-img');
+                renderUIElements();
+                renderExamsSection();
+                
+                // جلب بيانات الريلز أثناء التحميل
+                await fetchReelsFromGoogleSheet();
 
-                    if (bannerRawUrl) {
-                        setImageWithFallback(bannerImg, bannerRawUrl);
-                    }
-                    if (bannerText) {
-                        document.getElementById('dynamic-banner-text').innerText = bannerText;
-                    }
-                }
-
-                if (loaderText) {
-                    loaderText.innerText = db.subjects.length || db.courses.length
-                        ? 'تم تحميل المنصة بنجاح...'
-                        : 'تم فتح المنصة، جاري مزامنة البيانات...';
-                }
+                const loader = document.getElementById('premium-loader');
+                loader.classList.add('animate__animated', 'animate__fadeOut');
+                setTimeout(() => loader.style.display = 'none', 1000);
 
             } catch (err) {
-                console.error('خطأ عام أثناء تشغيل المنصة:', err);
-                if (loaderText) loaderText.innerText = 'تم فتح المنصة، ويمكن تحديث البيانات لاحقاً.';
-            } finally {
-                // لا نجعل الريلز أو أي خدمة خارجية تمنع ظهور المنصة.
-                requestAnimationFrame(() => {
-                    if (loader) {
-                        loader.classList.add('animate__animated', 'animate__fadeOut');
-                        setTimeout(() => {
-                            loader.style.display = 'none';
-                        }, 700);
-                    }
-                });
-
-                // الريلز يتم تحميلها في الخلفية مع مهلة زمنية.
-                fetchReelsFromGoogleSheet().catch(error => {
-                    console.warn('تعذر تحميل الريلز:', error);
-                });
+                document.getElementById('loader-text').innerText = "فشلت المزامنة، تأكد من اتصالك بالإنترنت.";
+                console.error(err);
             }
         }
 
@@ -846,7 +874,8 @@
 
         async function fetchReelsFromGoogleSheet() {
             try {
-                const text = await fetchTextSafe(REELS_SHEET_URL, 10000);
+                const response = await fetch(REELS_SHEET_URL);
+                const text = await response.text();
                 const json = JSON.parse(text.substr(47).slice(0, -2));
                 const rows = json.table.rows;
 
@@ -1463,10 +1492,273 @@
             if(!isDarkMode) applyThemeModifications();
         }
 
+        function isAndroidDevice() {
+            return /Android/i.test(navigator.userAgent || '');
+        }
+
+        let androidYTPlayer = null;
+
+        let androidCustomPlayerState = {
+            isOpen: false,
+            isYouTube: false,
+            isPlaying: true,
+            isMuted: false,
+            url: '',
+            videoId: '',
+            title: ''
+        };
+
+        function createAndroidCustomPlayer() {
+            let player = document.getElementById('android-custom-player');
+            if (player) return player;
+
+            player = document.createElement('div');
+            player.id = 'android-custom-player';
+            player.innerHTML = `
+                <div class="android-player-media" id="android-player-media"></div>
+                <div class="android-video-shield" id="android-video-shield" aria-hidden="true"></div>
+                <div class="android-top-safe" aria-hidden="true"></div>
+                <div class="android-bottom-safe" aria-hidden="true"></div>
+                <div class="android-message">مشغل منصة التميز</div>
+                <div class="android-controls">
+                    <button class="android-btn" id="android-play-btn" type="button" title="تشغيل / إيقاف">▶</button>
+                    <button class="android-btn" id="android-back-btn" type="button" title="رجوع 5 ثوانٍ">↶</button>
+                    <button class="android-btn" id="android-forward-btn" type="button" title="تقديم 5 ثوانٍ">↷</button>
+                    <button class="android-btn" id="android-mute-btn" type="button" title="الصوت">🔊</button>
+                    <div class="android-title" id="android-player-title"></div>
+                    <button class="android-btn" id="android-exit-btn" type="button" title="إغلاق">✕</button>
+                </div>
+            `;
+            document.body.appendChild(player);
+
+            document.getElementById('android-play-btn').addEventListener('click', androidTogglePlay);
+            document.getElementById('android-back-btn').addEventListener('click', () => androidSeek(-5));
+            document.getElementById('android-forward-btn').addEventListener('click', () => androidSeek(5));
+            document.getElementById('android-mute-btn').addEventListener('click', androidToggleMute);
+            document.getElementById('android-exit-btn').addEventListener('click', androidCloseCustomPlayer);
+
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && androidCustomPlayerState.isOpen) {
+                    // لا نغلق المشغل تلقائيًا عند تغيير Fullscreen من النظام.
+                }
+            });
+
+            return player;
+        }
+
+        function initAndroidYouTubeApiPlayer() {
+            if (!androidCustomPlayerState.isOpen || !androidCustomPlayerState.isYouTube) return;
+            const iframe = document.getElementById('android-youtube-frame');
+            if (!iframe) return;
+
+            if (window.YT && window.YT.Player) {
+                try {
+                    androidYTPlayer = new YT.Player('android-youtube-frame', {
+                        events: {
+                            onStateChange: (event) => {
+                                if (!window.YT || !androidCustomPlayerState.isOpen) return;
+                                if (event.data === YT.PlayerState.PLAYING) {
+                                    androidCustomPlayerState.isPlaying = true;
+                                    const b = document.getElementById('android-play-btn');
+                                    if (b) b.textContent = '⏸';
+                                } else if (event.data === YT.PlayerState.PAUSED) {
+                                    androidCustomPlayerState.isPlaying = false;
+                                    const b = document.getElementById('android-play-btn');
+                                    if (b) b.textContent = '▶';
+                                }
+                            }
+                        }
+                    });
+                } catch (e) {
+                    androidYTPlayer = null;
+                }
+            } else {
+                setTimeout(initAndroidYouTubeApiPlayer, 300);
+            }
+        }
+
+        function postYouTubeCommand(func, args = []) {
+            if (androidYTPlayer && typeof androidYTPlayer[func] === 'function') {
+                try { androidYTPlayer[func](...args); } catch (e) {}
+                return;
+            }
+            const iframe = document.getElementById('android-youtube-frame');
+            if (!iframe || !iframe.contentWindow) return;
+            iframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: func,
+                args: args
+            }), '*');
+        }
+
+        function androidTogglePlay() {
+            if (!androidCustomPlayerState.isOpen) return;
+            if (androidCustomPlayerState.isYouTube) {
+                if (androidCustomPlayerState.isPlaying) {
+                    postYouTubeCommand('pauseVideo');
+                    androidCustomPlayerState.isPlaying = false;
+                } else {
+                    postYouTubeCommand('playVideo');
+                    androidCustomPlayerState.isPlaying = true;
+                }
+            } else {
+                const video = document.getElementById('android-native-video');
+                if (!video) return;
+                if (video.paused) {
+                    video.play().catch(() => {});
+                } else {
+                    video.pause();
+                }
+                androidCustomPlayerState.isPlaying = !video.paused;
+            }
+            const btn = document.getElementById('android-play-btn');
+            if (btn) btn.textContent = androidCustomPlayerState.isPlaying ? '⏸' : '▶';
+        }
+
+        function androidSeek(seconds) {
+            if (!androidCustomPlayerState.isOpen) return;
+            if (androidCustomPlayerState.isYouTube) {
+                if (androidYTPlayer && typeof androidYTPlayer.getCurrentTime === 'function') {
+                    const current = Number(androidYTPlayer.getCurrentTime()) || 0;
+                    const duration = typeof androidYTPlayer.getDuration === 'function' ? Number(androidYTPlayer.getDuration()) || 0 : 0;
+                    const target = duration > 0 ? Math.max(0, Math.min(current + seconds, duration)) : Math.max(0, current + seconds);
+                    postYouTubeCommand('seekTo', [target, true]);
+                }
+            } else {
+                const video = document.getElementById('android-native-video');
+                if (video) video.currentTime = Math.max(0, video.currentTime + seconds);
+            }
+        }
+
+        function androidToggleMute() {
+            if (!androidCustomPlayerState.isOpen) return;
+            if (androidCustomPlayerState.isYouTube) {
+                if (androidCustomPlayerState.isMuted) {
+                    postYouTubeCommand('unMute');
+                    androidCustomPlayerState.isMuted = false;
+                } else {
+                    postYouTubeCommand('mute');
+                    androidCustomPlayerState.isMuted = true;
+                }
+            } else {
+                const video = document.getElementById('android-native-video');
+                if (!video) return;
+                video.muted = !video.muted;
+                androidCustomPlayerState.isMuted = video.muted;
+            }
+            const btn = document.getElementById('android-mute-btn');
+            if (btn) btn.textContent = androidCustomPlayerState.isMuted ? '🔇' : '🔊';
+        }
+
+        function androidOpenFullscreen(player) {
+            setTimeout(() => {
+                try {
+                    if (player.requestFullscreen) {
+                        const result = player.requestFullscreen();
+                        if (result && typeof result.catch === 'function') result.catch(() => {});
+                    } else if (player.webkitRequestFullscreen) {
+                        player.webkitRequestFullscreen();
+                    }
+                } catch (e) {}
+            }, 150);
+        }
+
+        function androidCloseCustomPlayer() {
+            const player = document.getElementById('android-custom-player');
+            if (!player) return;
+
+            const nativeVideo = document.getElementById('android-native-video');
+            if (nativeVideo) {
+                nativeVideo.pause();
+                nativeVideo.removeAttribute('src');
+                nativeVideo.load();
+            }
+
+            try {
+                if (document.fullscreenElement && document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            } catch (e) {}
+
+            document.getElementById('android-player-media').innerHTML = '';
+            androidYTPlayer = null;
+            player.classList.remove('active');
+            androidCustomPlayerState.isOpen = false;
+        }
+
+        function openAndroidCustomPlayer(url, title) {
+            const player = createAndroidCustomPlayer();
+            const media = document.getElementById('android-player-media');
+            const titleEl = document.getElementById('android-player-title');
+            const playBtn = document.getElementById('android-play-btn');
+            const muteBtn = document.getElementById('android-mute-btn');
+
+            media.innerHTML = '';
+            titleEl.textContent = title || '';
+
+            androidCustomPlayerState = {
+                isOpen: true,
+                isYouTube: /youtube\.com|youtu\.be/i.test(url),
+                isPlaying: true,
+                isMuted: false,
+                url,
+                videoId: '',
+                title: title || ''
+            };
+
+            if (androidCustomPlayerState.isYouTube) {
+                let videoId = '';
+                if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
+                else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
+                androidCustomPlayerState.videoId = videoId;
+
+                media.innerHTML = `
+                    <iframe id="android-youtube-frame"
+                            src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&controls=0&fs=0&iv_load_policy=3&disablekb=1"
+                            allow="autoplay; encrypted-media"
+                            tabindex="-1"
+                            title="مشغل منصة التميز"></iframe>
+                `;
+            } else {
+                media.innerHTML = `
+                    <video id="android-native-video" autoplay playsinline webkit-playsinline preload="metadata" src="${url}"></video>
+                `;
+                const video = document.getElementById('android-native-video');
+                video.addEventListener('play', () => {
+                    androidCustomPlayerState.isPlaying = true;
+                    playBtn.textContent = '⏸';
+                });
+                video.addEventListener('pause', () => {
+                    androidCustomPlayerState.isPlaying = false;
+                    playBtn.textContent = '▶';
+                });
+                video.play().catch(() => {});
+            }
+
+            playBtn.textContent = '⏸';
+            muteBtn.textContent = '🔊';
+            player.classList.add('active');
+
+            if (androidCustomPlayerState.isYouTube) {
+                setTimeout(initAndroidYouTubeApiPlayer, 250);
+            }
+
+            androidOpenFullscreen(player);
+        }
+
         function playSelectedVideo(url, title) {
             const playerFrame = document.getElementById('video-player-frame');
             document.getElementById('current-playing-title').innerText = "يعرض الآن: " + title;
 
+            // Android: استخدم مشغل المنصة المخصص لمنع الضغط على واجهة YouTube والانتقال خارج الموقع.
+            if (isAndroidDevice()) {
+                openAndroidCustomPlayer(url, title);
+                return;
+            }
+
+            // iPhone / iPad وأجهزة أخرى: السلوك الحالي كما هو دون تغيير.
             let isYoutube = url.includes('youtube.com') || url.includes('youtu.be');
 
             if (isYoutube) {
